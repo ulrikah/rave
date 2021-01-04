@@ -4,7 +4,8 @@
 
 # python
 __pycache__/
+.ipynb_checkpoints/
 
 # assets
-*.wav
-*.aif*
+./*.wav
+./*.aif*
