@@ -5,6 +5,7 @@
 # python
 __pycache__/
 .ipynb_checkpoints/
+notebooks/
 
 # assets
 ./*.wav
