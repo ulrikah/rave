@@ -39,6 +39,16 @@ def plot_mfcc(mfccs: np.ndarray, sr=22050):
     plt.show()
 
 
+def plot_1d(y: np.ndarray, title='RMS'):
+    """
+    Plots 1D numpy arrays along
+    """
+    fig, ax = plt.subplots()
+    plt.plot(y)
+    ax.set(title=title)
+    plt.show()
+
+
 def plot_wav(wav_file: str, sr=22050):
     """
     Plots a static wave file with matplotlib
