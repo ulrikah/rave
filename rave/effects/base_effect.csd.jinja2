@@ -1,0 +1,24 @@
+<CsoundSynthesizer>
+<CsOptions>
+-i {{ wav_file }}
+-odac
+</CsOptions>
+<CsInstruments>
+sr = 44100
+ksmps = 32
+nchnls = 1
+
+instr	1
+
+    aIn in
+    {{ effect }}
+    out aOut
+
+endin
+
+</CsInstruments>
+<CsScore>
+i 1 0 10 ; play it for 10 seconds
+e
+</CsScore>
+</CsoundSynthesizer>
