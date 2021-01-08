@@ -7,20 +7,47 @@ import ctcsound
 
 from .template_handler import TemplateHandler
 from .player import Player
+from .utils import play_wav, now
 
 
-def parse_json_effect(effect_json_path: str):
-    try:
-        with open(effect_json_path, 'r') as file:
-            data = file.read()
-            fx = json.loads(data, object_hook=lambda d: SimpleNamespace(**d))
-            return fx
-    except json.decoder.JSONDecodeError as error:
-        print("Unable to parse effect", effect_json_path)
-        raise error
+class Effect:
+    def __init__(self, effect_name):
+        """
+        Effect object model
+
+        Args:
+            effect_name: string corresponding to an effect in the rave/effects/ folder
+        """
+
+        effect = self.parse_effect_from_json(
+            f"rave/effects/{effect_name}.json")
+
+        self.parameters = effect.parameters
+        self.name = effect_name
+
+    def random_mapping(self):
+        """
+        Generate a random mapping of all parameter values
+        """
+        effect_params = {}
+        for param in self.parameters:
+            effect_params[param.name] = uniform(param.mapping.min_value,
+                                                param.mapping.max_value)
+        return effect_params
+
+    def parse_effect_from_json(self, effect_json_path: str):
+        try:
+            with open(effect_json_path, 'r') as file:
+                data = file.read()
+                effect = json.loads(
+                    data, object_hook=lambda d: SimpleNamespace(**d))
+                return effect
+        except json.decoder.JSONDecodeError as error:
+            print("Unable to parse effect", effect_json_path)
+            raise error
 
 
-def apply_effect(sound, effect):
+def apply_effect(wav_file, effect):
     """
     Applies an effect to a sound source by generating a CSound orchestra
 
@@ -35,23 +62,20 @@ def apply_effect(sound, effect):
 
 
 def main():
-    effect_name = "distortion"
-    effect_json = parse_json_effect(f"rave/effects/{effect_name}.json")
+    effect = Effect("bandpass")
+    INPUT_AUDIO = "rave/input_audio"
+    sound_source = "amen.wav"
 
     player = Player()
     for _ in range(3):
-        effect_params = {}
-        for param in effect_json.parameters:
-            effect_params[param.name] = uniform(param.mapping.min_value,
-                                                param.mapping.max_value)
-
-        bandpass = TemplateHandler(
-            f"{effect_name}.csd.jinja2").compile(effect_params)
+        output_file_path = f"rave/bounces/{effect.name}_{now()}.wav"
+        effect_params = effect.random_mapping()
+        fx = TemplateHandler(
+            f"{effect.name}.csd.jinja2").compile(effect_params)
         base = TemplateHandler("base_effect.csd.jinja2")
         csd = base.compile(
-            wav_file="rave/test_audio/amen.wav", effect=bandpass)
-
-        player.play_csd_string(csd)
+            input=f"{INPUT_AUDIO}/{sound_source}", output=output_file_path, flags="-W", effect=fx)
+        player.render_csd(csd)
 
     player.cleanup(exit=True)
 

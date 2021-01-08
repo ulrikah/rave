@@ -21,7 +21,7 @@ iLoop   init     0           ; looping switch (0=off 1=on)
 kdist line 0, 3, 1; ramp from 0 to 1 in 3 secs
 
 ; read audio from disk using diskin2 opcode
-asnd    diskin2  "test_audio/amen.wav", kSpeed, iSkip, iLoop
+asnd    diskin2  "input_audio/amen.wav", kSpeed, iSkip, iLoop
 aout	distort	asnd, kdist, gisig	; gradually increase the distortion
 out aout
 

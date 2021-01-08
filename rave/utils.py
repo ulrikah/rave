@@ -12,7 +12,7 @@ def now():
 
     filename = f"bounce_{now()}.wav"
     """
-    return datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    return datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")
 
 
 def plot_melspectrogram(S: np.ndarray, sr=22050):

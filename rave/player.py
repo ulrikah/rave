@@ -6,8 +6,10 @@ class Player:
     def __init__(self):
         self.cs = ctcsound.Csound()
 
-    def play_csd_string(self, csd):
-        # play the csd from text
+    def render_csd(self, csd: str):
+        """
+        Render CSD string. Options for I/O type should be set in the CSD string
+        """
         result = self.cs.compileCsdText(csd)
         result = self.cs.start()
         while True:

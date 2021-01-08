@@ -1,6 +1,6 @@
 import librosa
 import numpy as np
-from utils import plot_melspectrogram, plot_mfcc
+from .utils import plot_melspectrogram, plot_mfcc
 
 
 class Analyzer:
@@ -18,8 +18,8 @@ class Analyzer:
 
 
 if __name__ == "__main__":
-    source = "test_audio/noise.wav"
-    target = "test_audio/amen.wav"
+    source = "input_audio/noise.wav"
+    target = "input_audio/amen.wav"
     analyzer = Analyzer()
     noise_mfccs = analyzer.analyze_wav(source)
     amen_mfccs = analyzer.analyze_wav(target)

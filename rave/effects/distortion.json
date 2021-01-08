@@ -1,5 +1,4 @@
 {
-    "name": "distortion",
     "parameters": [
         {
             "name": "dist_amount",
