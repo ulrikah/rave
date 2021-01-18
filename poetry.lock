@@ -187,6 +187,14 @@ optional = false
 python-versions = ">=3.6"
 
 [[package]]
+name = "osc4py3"
+version = "1.0.8"
+description = "Python3 package for Open Sound Control (OSC) communications."
+category = "main"
+optional = false
+python-versions = ">=3.2"
+
+[[package]]
 name = "packaging"
 version = "20.8"
 description = "Core utilities for Python packages"
@@ -358,7 +366,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "7c6dd7e4d320d497396f67ae34d236fe8329a3f7d05f0d7ca15f720a528f97a2"
+content-hash = "1b80ac973d7855e5f32024aec30e317ea2b6490252f15412eeef4fbd37610ffe"
 
 [metadata.files]
 appdirs = [
@@ -606,6 +614,9 @@ numpy = [
     {file = "numpy-1.19.5-cp39-cp39-win_amd64.whl", hash = "sha256:0eef32ca3132a48e43f6a0f5a82cb508f22ce5a3d6f67a8329c81c8e226d3f6e"},
     {file = "numpy-1.19.5-pp36-pypy36_pp73-manylinux2010_x86_64.whl", hash = "sha256:a0d53e51a6cb6f0d9082decb7a4cb6dfb33055308c4c44f53103c073f649af73"},
     {file = "numpy-1.19.5.zip", hash = "sha256:a76f502430dd98d7546e1ea2250a7360c065a5fdea52b2dffe8ae7180909b6f4"},
+]
+osc4py3 = [
+    {file = "osc4py3-1.0.8.tar.gz", hash = "sha256:f45364b793270dfec860b399af6b5b361e54d440f14bf43d33b83a0b615a714c"},
 ]
 packaging = [
     {file = "packaging-20.8-py2.py3-none-any.whl", hash = "sha256:24e0da08660a87484d1602c30bb4902d74816b6985b93de36926f5bc95741858"},
