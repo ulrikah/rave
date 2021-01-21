@@ -14,7 +14,7 @@ librosa = "^0.8.0"
 matplotlib = "^3.3.3"
 ctcsound = "^6.14.2"
 Jinja2 = "^2.11.2"
-osc4py3 = "^1.0.8"
+python-osc = "^1.7.4"
 
 [tool.poetry.dev-dependencies]
 
