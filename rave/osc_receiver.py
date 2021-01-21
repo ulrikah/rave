@@ -14,8 +14,7 @@ def log_handler(address, *args):
 
 def features_handler(address, *features):
     print(address)
-    for feature in features:
-        print("\t", feature)
+    rms, pitch, centroid, flux = features
 
 
 if __name__ == "__main__":
@@ -27,6 +26,12 @@ if __name__ == "__main__":
 
     finished = False
     while not finished:
-        print("Sleeping for", SLEEP_TIME, "second")
-        time.sleep(SLEEP_TIME)
-        osc_process()
+        try:
+            # print("Sleeping for", SLEEP_TIME, "second")
+            # time.sleep(SLEEP_TIME)
+            osc_process()
+
+        except KeyboardInterrupt:
+            print("\nClosing OSC server.")
+            osc_terminate()
+            finished = True

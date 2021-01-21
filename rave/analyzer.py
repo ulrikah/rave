@@ -23,5 +23,3 @@ if __name__ == "__main__":
     analyzer = Analyzer()
     noise_mfccs = analyzer.analyze_wav(source)
     amen_mfccs = analyzer.analyze_wav(target)
-    import pdb
-    pdb.set_trace()

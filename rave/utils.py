@@ -6,6 +6,17 @@ import subprocess
 import datetime
 
 
+def get_duration(wav_file):
+    """
+    Returns the length of a WAV file in seconds
+
+    NB! Requires sox to be installed
+    TODO: find better way of determining length
+    """
+    dur_bytes = subprocess.check_output(["soxi", "-D", wav_file])
+    return float(dur_bytes.decode("utf-8").strip())
+
+
 def now():
     """
     Util for timestamping filenames and logs
@@ -63,3 +74,9 @@ def play_wav(wav_file: str):
     Plays back a static wave file by calling sox in a subprocess
     """
     subprocess.run(["play", wav_file])
+
+
+if __name__ == "__main__":
+    dur = get_duration("rave/input_audio/amen.wav")
+    assert type(dur) == float
+    assert dur == 5.564717, "File length doesn't match soxi's output"
