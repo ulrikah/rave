@@ -1,8 +1,8 @@
 import time
 from types import FunctionType
 
-from pythonosc import dispatcher
-from pythonosc import osc_server
+from pythonosc.dispatcher import Dispatcher
+from pythonosc.osc_server import BlockingOSCUDPServer
 
 
 class OscServer:
@@ -10,7 +10,7 @@ class OscServer:
         self.ip_adress = ip_adress
         self.port = port
 
-        self.dispatcher = dispatcher.Dispatcher()
+        self.dispatcher = Dispatcher()
         self.server = None
 
     def register_handler(self, route: str, handler_function: FunctionType, default=False):
@@ -20,14 +20,13 @@ class OscServer:
             self.dispatcher.map(route, handler_function)
 
     def terminate(self):
-        raise NotImplementedError
+        self.server.shutdown()
 
     def serve(self):
-        if self.server is None:
-            self.server = osc_server.ThreadingOSCUDPServer(
-                (self.ip_adress, self.port), self.dispatcher)
-        print(f"Listening for OSC messages on {self.ip_adress}:{self.port}")
+        self.server = BlockingOSCUDPServer(
+            (self.ip_adress, self.port), self.dispatcher)
         self.server.serve_forever()
+        print(f"Listening for OSC messages on {self.ip_adress}:{self.port}")
 
 
 if __name__ == "__main__":

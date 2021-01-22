@@ -6,8 +6,8 @@
 
 <CsoundSynthesizer>
 <CsOptions>
--i input_audio/amen.wav
-; -i adc
+; -i input_audio/amen.wav
+-i adc
 -o dac
 ; -n
 </CsOptions>
@@ -221,7 +221,7 @@ endin
 
 </CsInstruments>
 <CsScore>
-i 1 0 5.3
-; i 1 0 3600
+; i 1 0 5.3
+i 1 0 3600
 </CsScore>
 </CsoundSynthesizer>
