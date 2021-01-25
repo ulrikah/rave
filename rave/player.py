@@ -6,7 +6,7 @@ class Player:
     def __init__(self):
         self.cs = ctcsound.Csound()
 
-    def render_csd(self, csd: str):
+    def render_csd(self, csd: str, exit=False):
         """
         Render CSD string. Options for I/O type should be set in the CSD string
         """
@@ -16,7 +16,7 @@ class Player:
             result = self.cs.performKsmps()
             if result != 0:
                 break
-        self.cleanup()
+        self.cleanup(exit)
 
     def cleanup(self, exit=False):
         result = self.cs.cleanup()

@@ -1,3 +1,4 @@
+import numpy as np
 import json
 import sys
 from types import SimpleNamespace
@@ -5,9 +6,8 @@ from random import uniform
 
 import ctcsound
 
-from .template_handler import TemplateHandler
-from .player import Player
-from .utils import play_wav, now
+from template_handler import TemplateHandler
+from player import Player
 
 
 class Effect:
@@ -24,6 +24,18 @@ class Effect:
 
         self.parameters = effect.parameters
         self.name = effect_name
+
+    def mapping_from_array(self, array: np.ndarray):
+        """
+        Outputs effect parameters in JSON format based on a numerical array.
+        Assumes that parameters have been generated from top to bottom.
+        """
+        assert len(array) == len(
+            self.parameters), "Number of params doesn't match length of action"
+        effect_params = {}
+        for i, param in enumerate(self.parameters):
+            effect_params[param.name] = array[i]
+        return effect_params
 
     def random_mapping(self):
         """
@@ -68,8 +80,10 @@ def main():
 
     player = Player()
     for _ in range(3):
-        output_file_path = f"rave/bounces/{effect.name}_{now()}.wav"
+        output_file_path = f"rave/bounces/{effect.name}_{timestamp()}.wav"
         effect_params = effect.random_mapping()
+        import pdb
+        pdb.set_trace()
         fx = TemplateHandler(
             f"{effect.name}.csd.jinja2").compile(effect_params)
         base = TemplateHandler("base_effect.csd.jinja2")

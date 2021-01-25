@@ -23,10 +23,10 @@ class OscServer:
         self.server.shutdown()
 
     def serve(self):
+        print(f"Listening for OSC messages on {self.ip_adress}:{self.port}")
         self.server = BlockingOSCUDPServer(
             (self.ip_adress, self.port), self.dispatcher)
         self.server.serve_forever()
-        print(f"Listening for OSC messages on {self.ip_adress}:{self.port}")
 
 
 if __name__ == "__main__":

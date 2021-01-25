@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "rave"
 version = "0.1.0"
-description = "Cross adaptive processing with reinforcement learning"
+description = "Cross adaptive audio effects with reinforcement learning"
 authors = ["ulrikah <ulrikhalmoy@gmail.com>"]
 
 [tool.poetry.scripts]
@@ -15,6 +15,8 @@ matplotlib = "^3.3.3"
 ctcsound = "^6.14.2"
 Jinja2 = "^2.11.2"
 python-osc = "^1.7.4"
+gym = "^0.18.0"
+torch = "^1.7.1"
 
 [tool.poetry.dev-dependencies]
 

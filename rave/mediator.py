@@ -6,12 +6,14 @@ from threading import Thread
 
 
 class Mediator:
-    def __init__(self, batch_size=100):
+    def __init__(self, run=True):
         self.osc_server = OscServer()
         self.osc_server.register_handler(
             "/rave/features", self.add_features)
         self.q = SimpleQueue()
-        self.osc_server_thread = Thread(target=self.osc_server.serve)
+        self.osc_server_thread = None
+        if run:
+            self.run()
 
     def add_features(self, address, *features):
         self.q.put(features)
@@ -24,11 +26,16 @@ class Mediator:
             raise IOError
 
     def run(self):
+        self.osc_server_thread = Thread(target=self.osc_server.serve)
         self.osc_server_thread.start()
 
     def terminate(self):
-        self.osc_server.terminate()
-        self.osc_server_thread.join()
+        if self.osc_server_thread is not None:
+            self.osc_server.terminate()
+            self.osc_server_thread.join()
+            self.osc_server_thread = None
+        else:
+            raise Exception("Attempting to terminate thread before it started")
 
 
 if __name__ == "__main__":

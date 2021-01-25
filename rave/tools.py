@@ -17,11 +17,11 @@ def get_duration(wav_file):
     return float(dur_bytes.decode("utf-8").strip())
 
 
-def now():
+def timestamp():
     """
     Util for timestamping filenames and logs
 
-    filename = f"bounce_{now()}.wav"
+    filename = f"bounce_{timestamp()}.wav"
     """
     return datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")
 
