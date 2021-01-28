@@ -7,7 +7,7 @@ NUMBER = 1000
 
 orc = """
 sr=44100
-ksmps=32
+ksmps=64
 nchnls=1
 0dbfs=1
 

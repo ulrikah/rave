@@ -6,6 +6,16 @@ import subprocess
 import datetime
 
 
+def k_to_sec(ksmps=64, sr=44100):
+    """How many seconds are there in 1 k with sample rate sr?"""
+    return (ksmps / sr)
+
+
+def k_per_sec(ksmps=64, sr=44100):
+    """How many ksmps are there in 1 second of sample rate sr?"""
+    return (sr / ksmps)
+
+
 def get_duration(wav_file):
     """
     Returns the length of a WAV file in seconds

@@ -86,7 +86,7 @@ def main():
         pdb.set_trace()
         fx = TemplateHandler(
             f"{effect.name}.csd.jinja2").compile(effect_params)
-        base = TemplateHandler("base_effect.csd.jinja2")
+        base = TemplateHandler("base.csd.jinja2")
         csd = base.compile(
             input=f"{INPUT_AUDIO}/{sound_source}", output=output_file_path, flags="-W", effect=fx)
         player.render_csd(csd)
