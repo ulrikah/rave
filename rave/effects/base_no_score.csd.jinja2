@@ -1,0 +1,23 @@
+<CsoundSynthesizer>
+<CsOptions>
+-i{{ input }}
+-o{{ output }} {{ flags }}
+</CsOptions>
+<CsInstruments>
+sr = {{ sample_rate }}
+ksmps = {{ ksmps }}
+nchnls = 1
+0dbfs = 1
+
+instr	1
+
+    aIn in
+    printk 0, 3.14
+    {{ effect }}
+    {{ analyzer }}
+    out aOut
+
+endin
+
+</CsInstruments>
+</CsoundSynthesizer>

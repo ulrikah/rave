@@ -1,4 +1,6 @@
 import os
+import wave
+
 from effect import Effect
 from template_handler import TemplateHandler
 from tools import timestamp, get_duration, k_to_sec
@@ -28,10 +30,19 @@ class Sound:
         self.filename = filename
         self.input_file_path = rel_path
         self.player = Player()
+        self.get_properties()
 
+    def get_properties(self):
+        with wave.open(wav_file_path, "rb") as wav:
+            self.frame_rate = wav.getframerate()
+            self.n_frames = wav.getnframes()
+            self.n_sec = self.n_frames / self.frame_rate
+
+    @staticmethod
     def compile_effect(self, effect: Effect, mapping):
         return TemplateHandler(f"{effect.name}.csd.jinja2", template_dir=EFFECTS_TEMPLATE_DIR).compile(mapping)
 
+    @staticmethod
     def compile_analyzer(self, osc_route: str):
         return TemplateHandler("analyzer.csd.jinja2", template_dir=EFFECTS_TEMPLATE_DIR).compile(osc_route=osc_route)
 

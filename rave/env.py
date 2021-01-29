@@ -77,4 +77,7 @@ if __name__ == "__main__":
     env = Env(effect, metric)
     action = env.action_space.sample()
     state, reward, _, _ = env.step(action)
+
+    # where do we send the next audio?
+
     env.mediator.terminate()  # TODO: better to wrap this in a context using with
