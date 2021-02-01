@@ -11,7 +11,7 @@ class Player:
 
     def render_csd(self, csd: str, exit=False):
         """
-        Render CSD string. Options for I/O type should be set in the CSD string
+        Renders a CSD string and optionally exits afterwards
         """
         result = self.cs.compileCsdText(csd)
         result = self.cs.start()
@@ -25,6 +25,13 @@ class Player:
         """Compiles the CSD and starts the engine, but wait for render function to actually render a k"""
         self.cs.compileCsdText(csd)
         self.cs.start()
+
+    def set_channels(self, mappings):
+        for name, value in mappings.items():
+            self.cs.setControlChannel(name, value)
+
+    def get_channels(self, channels):
+        return [self.cs.controlChannel(channel) for channel in channels]
 
     def render_one_frame(self):
         """Performs one k-rate update of the compiled csd"""

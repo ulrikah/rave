@@ -9,22 +9,22 @@ ksmps = {{ ksmps }}
 nchnls = 1
 0dbfs = 1
 
-{% for channel in channels %}
-    chn_k "{{ channel.name }}", 3
-    chnset {{ channel.value }}, "{{ channel.name }}" ; not sure if the channel should be set on startup
-{% endfor %}
-
 instr	1
 
 {% for channel in channels %}
+    chn_k "{{ channel.name }}", 3
+    chnset {{ channel.value }}, "{{ channel.name }}" ; not sure if the channel should be set on startup
     k_{{ channel.name}} chnget "{{ channel.name }}"
 {% endfor %}
 
     aIn in
+{% if effect is not none %}
     {{ effect }}
+{% else %}
+    aOut = aIn
+{% endif %}
     {{ analyzer }}
     out aOut
-
 endin
 
 </CsInstruments>

@@ -42,6 +42,14 @@ class Effect:
             mapping[param.name] = array[i]
         return mapping
 
+    def get_csd_channels(self):
+        """
+        Returns an array of Channel namedtuples with a random mapping
+        """
+        mapping = self.random_mapping()
+        return [Channel(name=name, value=value)
+                for (name, value) in mapping.items()]
+
     def random_mapping(self):
         """
         Generate a random mapping of all parameter values
@@ -62,20 +70,6 @@ class Effect:
         except json.decoder.JSONDecodeError as error:
             print("Unable to parse effect", effect_json_path)
             raise error
-
-
-def apply_effect(wav_file, effect):
-    """
-    Applies an effect to a sound source by generating a CSound orchestra
-
-    Args:
-        sound: path to a .wav file
-        effect: an object representation of an effect
-    Return:
-        path to the generated .wav file
-    """
-
-    return
 
 
 def main():
@@ -106,4 +100,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    effect = Effect("bandpass")
+    channels = effect.get_csd_channels()
+    print(channels)

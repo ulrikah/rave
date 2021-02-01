@@ -3,6 +3,7 @@ import numpy as np
 
 import subprocess
 import os
+import sys
 
 from metrics import EuclideanDistance, AbstractMetric
 from effect import Effect
@@ -19,9 +20,9 @@ class Env(gym.Env):
     """
 
     def __init__(self, effect: Effect, metric: AbstractMetric):
-        # TODO: define target and source sounds
-        self.source = Sound(AMEN)
-        self.target = Sound(NOISE)
+        # TODO: define target and source sounds from settings or similar
+        self.source = Sound(NOISE)
+        self.target = Sound(AMEN)
 
         self.effect = effect
         self.metric = metric
@@ -36,6 +37,11 @@ class Env(gym.Env):
         # TODO: set this dynamically based on analysis params
         self.observation_space = gym.spaces.Box(low=0.0, high=1.0, shape=(4,))
 
+        self.source.apply_effect(
+            effect=self.effect, analyzer_osc_route="/rave/source/features")
+        self.target.apply_effect(
+            effect=None, analyzer_osc_route="/rave/target/features")
+
     def step(self, action: np.ndarray):
         """
         Algorithm:
@@ -46,14 +52,14 @@ class Env(gym.Env):
         assert self.action_space.contains(action)
 
         self.mapping = self.effect.mapping_from_array(action)
-        self.source.apply_effect(self.effect, self.mapping,
-                                 analyzer_osc_route="/rave/source/features")
-        self.target.apply_effect(self.effect, self.mapping,
-                                 analyzer_osc_route="/rave/target/features")
-        source, target = self.mediator.get_features()
-        reward = self.calculate_reward(source, target)
+        self.source.render(mapping=self.mapping)
+        self.target.render()
 
-        return self.get_state(), reward, False, {}  # gym.Env format
+        # TODO: get features should be dependent on whether mode is LIVE or STATIC, i.e. wheter features are sent over channels or OSC
+        # source, target = self.mediator.get_features()
+        # reward = self.calculate_reward(source, target)
+
+        # return self.get_state(), reward, False, {}  # gym.Env format
 
     def get_state(self):
         return self.mapping
@@ -76,7 +82,8 @@ if __name__ == "__main__":
     metric = EuclideanDistance()
     env = Env(effect, metric)
     action = env.action_space.sample()
-    state, reward, _, _ = env.step(action)
+    # state, reward, _, _ = env.step(action)
+    env.step(action)
 
     # where do we send the next audio?
 

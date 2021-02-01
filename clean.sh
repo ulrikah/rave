@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 
-BOUNCES="rave/bounces/*.wav"
-PLOTS="rave/plots/*.{jpg,png}"
-echo "Removing plots and bounces"
-for path in {$BOUNCES,$PLOTS}; do
+echo "Removing assets"
+for path in {"rave/bounces/*.wav","rave/plots/*.{jpg,png}","rave/csd/*.csd"}; do
     echo "🗑  deleting $path"
     rm -rf $path
 done
