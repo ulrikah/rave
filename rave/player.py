@@ -31,19 +31,18 @@ class Player:
             self.cs.setControlChannel(name, value)
 
     def get_channels(self, channels):
-        return [self.cs.controlChannel(channel) for channel in channels]
+        return [self.cs.controlChannel(channel)[0] for channel in channels]
 
     def render_one_frame(self):
         """Performs one k-rate update of the compiled csd"""
         result = self.cs.performKsmps()
-        self.k += 1
         if result != 0:
-            logging.critical(f"URGENT {result}")
+            logging.critical(f"URGENT. Result: {result} | k: {self.k}")
             self.cleanup()
             sys.exit(result)
-
+        self.k += 1
         """
-        TODO
+        TODO: return a code from render() that env can use to determine whether or not to apply a step (say done?)
         if self.k > end:
             STOP
             self.cleanup ?

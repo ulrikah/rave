@@ -87,13 +87,13 @@ class Sound:
             "rave/csd", f"{os.path.splitext(self.filename)[0]}_{timestamp()}.csd"))
         return self.csd
 
-    def render(self, mapping=None, n_frames=2):
+    def render(self, mapping=None, n_frames=1):
         """
         Applies the mapping to the sound object and renders n_frames
 
         Args:
             mapping: a dict of parameter values corresponding to the parameters in the Effect
-            n_frames: number of audio frames to render. Defaults to 2 since analyzer triggers every 2nd k
+            n_frames: number of audio frames to render
         """
         if self.csd is None:
             raise Exception("render is called prior to apply_effect")
@@ -105,13 +105,16 @@ class Sound:
         if mapping is not None:
             self.player.set_channels(mapping)
 
-        import time
-        start = time.time()
         for i in range(n_frames):
             self.player.render_one_frame()
+
+        """
+        import time
+        start = time.time()
             print(["rms", "pitch_n", "centroid", "flux"])
             print(list(self.player.get_channels(
                 ["rms", "pitch_n", "centroid", "flux"])))
         end = time.time()
 
         print(f"\nSpent {end - start} seconds rendering {n_frames} frames \n")
+        """

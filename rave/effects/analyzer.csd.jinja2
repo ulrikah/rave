@@ -216,7 +216,7 @@ chnset kpitch_n, "pitch_n"
 chnset kcentroid, "centroid"
 chnset krms, "flux"
 
-OSCsend kwhen, $IP_ADDRESS, $PORT, "{{ osc_route }}", "ffff", krms, kpitch_n, kcentroid_n, kflux_l
+; OSCsend kwhen, $IP_ADDRESS, $PORT, "{{ osc_route }}", "ffff", krms, kpitch_n, kcentroid_n, kflux_l
 ; String sprintfk "rms : %f | pitch : %f | cent : %f | flux : %f", krms, kpitch_n, kcentroid_n, kflux_l
 ; puts String, kwhen
 kwhen += km

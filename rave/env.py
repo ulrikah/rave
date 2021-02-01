@@ -1,9 +1,11 @@
 import gym
 import numpy as np
+import torch
 
 import subprocess
 import os
 import sys
+from enum import Enum
 
 from metrics import EuclideanDistance, AbstractMetric
 from effect import Effect
@@ -12,6 +14,12 @@ from mediator import Mediator
 
 AMEN = "amen_trim.wav"
 NOISE = "noise.wav"
+ANALYSIS_CHANNELS = ["rms", "pitch_n", "centroid", "flux"]
+
+
+class Mode(Enum):
+    LIVE = "live"
+    STATIC = "static"
 
 
 class Env(gym.Env):
@@ -19,14 +27,14 @@ class Env(gym.Env):
     Environment for learning crossadaptive processing with reinforcement learning
     """
 
-    def __init__(self, effect: Effect, metric: AbstractMetric):
+    def __init__(self, effect: Effect, metric: AbstractMetric, mode: Mode):
         # TODO: define target and source sounds from settings or similar
         self.source = Sound(NOISE)
         self.target = Sound(AMEN)
 
         self.effect = effect
         self.metric = metric
-        self.mediator = Mediator()
+        self.mode = mode
         self.mapping = None  # or init to random?
 
         lows = np.array([p.mapping.min_value for p in effect.parameters])
@@ -42,6 +50,9 @@ class Env(gym.Env):
         self.target.apply_effect(
             effect=None, analyzer_osc_route="/rave/target/features")
 
+        if self.mode == Mode.LIVE:
+            self.mediator = Mediator()
+
     def step(self, action: np.ndarray):
         """
         Algorithm:
@@ -55,22 +66,33 @@ class Env(gym.Env):
         self.source.render(mapping=self.mapping)
         self.target.render()
 
-        # TODO: get features should be dependent on whether mode is LIVE or STATIC, i.e. wheter features are sent over channels or OSC
-        # source, target = self.mediator.get_features()
-        # reward = self.calculate_reward(source, target)
+        if self.mode == Mode.LIVE:
+            source, target = self.mediator.get_features()
+        else:
+            source = torch.tensor(
+                self.source.player.get_channels(ANALYSIS_CHANNELS))
+            target = torch.tensor(
+                self.target.player.get_channels(ANALYSIS_CHANNELS))
 
-        # return self.get_state(), reward, False, {}  # gym.Env format
+        reward = self.calculate_reward(source, target)
+        return self.get_state(), reward, False, {}
 
     def get_state(self):
+        assert self.mapping is not None
         return self.mapping
 
     def reset(self):
-        self.mediator.clear()
+        if self.mode == LIVE:
+            self.mediator.clear()
+        raise NotImplementedError
 
     def calculate_reward(self, source, target):
+        assert source.shape == target.shape
         return self.metric.calculate_reward(source, target)
 
     def close(self):
+        if self.mode == Mode.Live:
+            self.mediator.terminate()
         raise NotImplementedError
 
     def render(self):
@@ -80,11 +102,10 @@ class Env(gym.Env):
 if __name__ == "__main__":
     effect = Effect("distortion")
     metric = EuclideanDistance()
-    env = Env(effect, metric)
-    action = env.action_space.sample()
-    # state, reward, _, _ = env.step(action)
-    env.step(action)
+    env = Env(effect, metric, mode=Mode.STATIC)
+    for i in range(100):
+        action = env.action_space.sample()
+        state, reward, _, _ = env.step(action)
+        print(reward)
 
-    # where do we send the next audio?
-
-    env.mediator.terminate()  # TODO: better to wrap this in a context using with
+    # TODO: where do we send the next audio?
