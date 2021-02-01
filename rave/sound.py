@@ -74,7 +74,7 @@ class Sound:
             flags="-W",
             effect=effect_csd,
             analyzer=analyzer_csd,
-            length=get_duration(os.path.join(
+            duration=get_duration(os.path.join(
                 AUDIO_INPUT_FOLDER, AUDIO_INPUT_FILE))
         )
 

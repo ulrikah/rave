@@ -1,13 +1,18 @@
-import numpy as np
 import json
 import sys
+import os
 from types import SimpleNamespace
 from random import uniform
+from collections import namedtuple
 
 import ctcsound
+import numpy as np
 
 from template_handler import TemplateHandler
 from player import Player
+from tools import timestamp, get_duration
+
+Channel = namedtuple("Channel", ['name', 'value'])
 
 
 class Effect:
@@ -32,20 +37,20 @@ class Effect:
         """
         assert len(array) == len(
             self.parameters), "Number of params doesn't match length of action"
-        effect_params = {}
+        mapping = {}
         for i, param in enumerate(self.parameters):
-            effect_params[param.name] = array[i]
-        return effect_params
+            mapping[param.name] = array[i]
+        return mapping
 
     def random_mapping(self):
         """
         Generate a random mapping of all parameter values
         """
-        effect_params = {}
+        mapping = {}
         for param in self.parameters:
-            effect_params[param.name] = uniform(param.mapping.min_value,
-                                                param.mapping.max_value)
-        return effect_params
+            mapping[param.name] = uniform(param.mapping.min_value,
+                                          param.mapping.max_value)
+        return mapping
 
     def parse_effect_from_json(self, effect_json_path: str):
         try:
@@ -77,18 +82,24 @@ def main():
     effect = Effect("bandpass")
     INPUT_AUDIO = "rave/input_audio"
     sound_source = "amen.wav"
+    input_file_path = os.path.join(INPUT_AUDIO, sound_source)
 
     player = Player()
-    for _ in range(3):
+    live_mode = False
+    for _ in range(4):
         output_file_path = f"rave/bounces/{effect.name}_{timestamp()}.wav"
-        effect_params = effect.random_mapping()
-        import pdb
-        pdb.set_trace()
+        mapping = effect.random_mapping()
+        channels = [Channel(name=name, value=value)
+                    for (name, value) in mapping.items()]
         fx = TemplateHandler(
-            f"{effect.name}.csd.jinja2").compile(effect_params)
-        base = TemplateHandler("base.csd.jinja2")
-        csd = base.compile(
-            input=f"{INPUT_AUDIO}/{sound_source}", output=output_file_path, flags="-W", effect=fx)
+            f"{effect.name}.csd.jinja2", template_dir="rave/effects").compile(mapping)
+        base = TemplateHandler("base.csd.jinja2", template_dir="rave/effects")
+        if live_mode:
+            # Add OSC receivers and stuff
+            raise NotImplementedError
+        # Initialize channels
+        csd = base.compile(sample_rate=44100, ksmps=64,
+                           input=input_file_path, output="dac", flags="-W", effect=fx, channels=channels, duration=get_duration(input_file_path))
         player.render_csd(csd)
 
     player.cleanup(exit=True)

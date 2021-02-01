@@ -18,10 +18,10 @@ def k_per_sec(ksmps=64, sr=44100):
 
 def get_duration(wav_file):
     """
-    Returns the length of a WAV file in seconds
+    Returns the duration of a WAV file in seconds
 
     NB! Requires sox to be installed
-    TODO: find better way of determining length
+    TODO: find better way of determining duration
     """
     dur_bytes = subprocess.check_output(["soxi", "-D", wav_file])
     return float(dur_bytes.decode("utf-8").strip())
@@ -89,4 +89,4 @@ def play_wav(wav_file: str):
 if __name__ == "__main__":
     dur = get_duration("rave/input_audio/amen.wav")
     assert type(dur) == float
-    assert dur == 5.564717, "File length doesn't match soxi's output"
+    assert dur == 5.564717, "File duration doesn't match soxi's output"
