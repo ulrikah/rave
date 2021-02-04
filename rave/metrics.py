@@ -29,7 +29,7 @@ class EuclideanDistance(AbstractMetric):
         reward = 1.0 / (1.0 + euclidean_distance)
         assert self.is_in_range(
             reward, self.reward_range), f"Reward {reward} is outside the requested range {self.reward_range}"
-        return reward
+        return reward.item()
 
 
 if __name__ == "__main__":

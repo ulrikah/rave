@@ -23,31 +23,35 @@ class Mode(Enum):
     STATIC = "static"
 
 
-class Env(gym.Env):
+class CrossAdaptiveEnv(gym.Env):
     """
     Environment for learning crossadaptive processing with reinforcement learning
     """
 
-    def __init__(self, effect: Effect, metric: AbstractMetric, mode: Mode):
-        # TODO: define target and source sounds from settings or similar
+    def __init__(self, config):
+        # TODO: define target and source sounds from config
         self.source_input = NOISE
         self.target_input = AMEN
         self.source = Sound(self.source_input)
         self.target = Sound(self.target_input)
 
-        self.effect = effect
-        self.metric = metric
-        self.mode = mode
-        self.mapping = self.effect.random_mapping()
+        self.effect = config["effect"]
+        self.metric = config["metric"]
+        self.mode = config["mode"]
+
+        self.numerical_mapping = self.effect.random_numerical_mapping()
+        self.mapping = self.effect.mapping_from_numerical_array(
+            self.numerical_mapping)
         self.mappings = []
 
-        lows = np.array([p.mapping.min_value for p in effect.parameters])
-        highs = np.array([p.mapping.max_value for p in effect.parameters])
+        lows = np.array([p.mapping.min_value for p in self.effect.parameters])
+        highs = np.array([p.mapping.max_value for p in self.effect.parameters])
         self.action_space = gym.spaces.Box(
-            low=lows, high=highs, dtype=np.float)
+            low=lows, high=highs, dtype=float)
+        self.observation_space = self.action_space
 
-        self.observation_space = gym.spaces.Box(
-            low=0.0, high=1.0, shape=(len(ANALYSIS_CHANNELS),))
+        # self.observation_space = gym.spaces.Box(
+        #     low=0.0, high=1.0, shape=(len(ANALYSIS_CHANNELS),))
 
         self.source.apply_effect(
             effect=self.effect, analyzer_osc_route="/rave/source/features")
@@ -66,7 +70,15 @@ class Env(gym.Env):
         """
         assert self.action_space.contains(action)
 
-        self.mapping = self.effect.mapping_from_array(action)
+        """
+            TODO:
+            map between output of the agent (probably best to keep it in the (0, 1) range)
+            and a mapping in the effects
+
+            also: get_state() should return the (0, 1 mapping)
+        """
+        self.numerical_mapping = action
+        self.mapping = self.effect.mapping_from_numerical_array(action)
         self.mappings.append(self.mapping)
         source_done = self.source.render(mapping=self.mapping)
         target_done = self.target.render()
@@ -87,14 +99,16 @@ class Env(gym.Env):
         return self.get_state(), reward, done, {}
 
     def get_state(self):
-        return self.mapping
+        return self.numerical_mapping
 
     def _reset_mappings(self):
-        self.mapping = self.effect.random_mapping()
+        self.numerical_mapping = self.effect.random_numerical_mapping()
+        self.mappings = self.effect.mapping_from_numerical_array(
+            self.numerical_mapping)
         self.mappings = [self.mapping]
 
     def reset(self):
-        if self.mode == LIVE:
+        if self.mode == Mode.LIVE:
             self.mediator.clear()
         self._reset_mappings()
         return self.get_state()
@@ -104,9 +118,11 @@ class Env(gym.Env):
         return self.metric.calculate_reward(source, target)
 
     def close(self):
-        if self.mode == Mode.Live:
+        if self.mode == Mode.LIVE:
             self.mediator.terminate()
-        raise NotImplementedError
+        for sound in [self.source, self.target]:
+            if sound.player is not None:
+                sound.player.cleanup()
 
     def render(self):
         """
@@ -125,7 +141,12 @@ class Env(gym.Env):
 if __name__ == "__main__":
     effect = Effect("bandpass")
     metric = EuclideanDistance()
-    env = Env(effect, metric, mode=Mode.STATIC)
+    config = {
+        "effect": effect,
+        "metric": metric,
+        "mode": Mode.STATIC
+    }
+    env = CrossAdaptiveEnv(config)
 
     N = 10000
     for i in range(N):
@@ -133,5 +154,3 @@ if __name__ == "__main__":
         state, reward, done, _ = env.step(action)
         if i % 1000 == 0:
             print(f"\nREWARD: {reward} \n")
-
-    # TODO: where do we send the next audio?

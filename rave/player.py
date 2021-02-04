@@ -57,7 +57,6 @@ class Player:
         self.cs.reset()
         if exit:
             del self.cs
-            sys.exit(exit_code)
 
 
 if __name__ == "__main__":

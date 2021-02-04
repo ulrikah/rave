@@ -30,7 +30,7 @@ class Effect:
         self.parameters = effect.parameters
         self.name = effect_name
 
-    def mapping_from_array(self, array: np.ndarray):
+    def mapping_from_numerical_array(self, array: np.ndarray):
         """
         Outputs effect parameters in JSON format based on a numerical array.
         Assumes that parameters have been generated from top to bottom.
@@ -46,19 +46,18 @@ class Effect:
         """
         Returns an array of Channel namedtuples with a random mapping
         """
-        mapping = self.random_mapping()
+        mapping = self.mapping_from_numerical_array(
+            self.random_numerical_mapping())
         return [Channel(name=name, value=value)
                 for (name, value) in mapping.items()]
 
-    def random_mapping(self):
+    def random_numerical_mapping(self):
         """
-        Generate a random mapping of all parameter values
+        Generate a random mapping of all parameter values as an array
         """
-        mapping = {}
-        for param in self.parameters:
-            mapping[param.name] = uniform(param.mapping.min_value,
-                                          param.mapping.max_value)
-        return mapping
+        numerical_mapping = [uniform(
+            param.mapping.min_value, param.mapping.max_value) for param in self.parameters]
+        return numerical_mapping
 
     def parse_effect_from_json(self, effect_json_path: str):
         try:
@@ -82,7 +81,8 @@ def main():
     live_mode = False
     for _ in range(4):
         output_file_path = f"rave/bounces/{effect.name}_{timestamp()}.wav"
-        mapping = effect.random_mapping()
+        mapping = effect.mapping_from_numerical_array(
+            effect.random_numerical_mapping())
         channels = [Channel(name=name, value=value)
                     for (name, value) in mapping.items()]
         fx = TemplateHandler(
@@ -103,3 +103,4 @@ if __name__ == "__main__":
     effect = Effect("bandpass")
     channels = effect.get_csd_channels()
     print(channels)
+    print(effect.random_numerical_mapping())
