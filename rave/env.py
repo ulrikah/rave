@@ -113,8 +113,8 @@ class Env(gym.Env):
         Renders a file with all the mappings from the episode
         """
         done = False
-        source = Sound(self.source_input,
-                       output_file_path=f"{self.effect.name}_render_{timestamp()}.wav", loop=False)
+        source = Sound(
+            self.source_input, output_file_path=f"{self.effect.name}_render_{timestamp()}_{self.source_input}", loop=False)
         source.apply_effect(effect=self.effect)
         for mapping in self.mappings[:-1]:
             done = source.render(mapping=mapping)

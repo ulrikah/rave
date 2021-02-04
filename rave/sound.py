@@ -11,6 +11,7 @@ AMEN = "amen_trim.wav"
 NOISE = "noise.wav"
 
 LIVE = "adc"
+NO_SOUND = "--nosound"
 AUDIO_INPUT_FOLDER = "rave/input_audio/"
 AUDIO_OUTPUT_FOLDER = "rave/bounces/"
 AUDIO_INPUT_FILE = AMEN
@@ -32,9 +33,11 @@ class Sound:
         assert os.path.isfile(rel_path), f"Couldn't find {rel_path}"
         self.filename = filename
         self.input_file_path = rel_path
-        AUDIO_OUTPUT_FILE = f"{os.path.splitext(self.filename)[0]}_{timestamp()}.wav"
-        self.output_file_path = os.path.join(
-            AUDIO_OUTPUT_FOLDER, output_file_path if output_file_path is not None else AUDIO_OUTPUT_FILE)
+        if output_file_path is None:
+            # TODO: don't use -o dac at all when --nosound flag is set
+            self.output = "dac --nosound"
+        else:
+            self.output = os.path.join(AUDIO_OUTPUT_FOLDER, output_file_path)
         self.get_properties()
         self.player = None
         self.loop = loop
@@ -72,7 +75,7 @@ class Sound:
         channels = effect.get_csd_channels() if effect is not None else []
         self.csd = base.compile(
             input=self.input_file_path,
-            output=self.output_file_path,
+            output=self.output,
             channels=channels,
             sample_rate=SAMPLE_RATE,
             ksmps=KSMPS,
