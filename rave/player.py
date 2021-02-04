@@ -8,6 +8,7 @@ class Player:
     def __init__(self):
         self.k = 0
         self.cs = ctcsound.Csound()
+        self.csd = None
 
     def render_csd(self, csd: str, exit=False):
         """
@@ -23,6 +24,7 @@ class Player:
 
     def start_halting(self, csd: str):
         """Compiles the CSD and starts the engine, but wait for render function to actually render a k"""
+        self.csd = csd
         self.cs.compileCsdText(csd)
         self.cs.start()
 
@@ -33,26 +35,26 @@ class Player:
     def get_channels(self, channels):
         return [self.cs.controlChannel(channel)[0] for channel in channels]
 
-    def render_one_frame(self):
+    def render_one_frame(self, loop):
         """Performs one k-rate update of the compiled csd"""
         result = self.cs.performKsmps()
-        if result != 0:
-            logging.critical(f"URGENT. Result: {result} | k: {self.k}")
-            self.cleanup()
-            sys.exit(result)
         self.k += 1
-        """
-        TODO: return a code from render() that env can use to determine whether or not to apply a step (say done?)
-        if self.k > end:
-            STOP
-            self.cleanup ?
-            self.k = 0
-        """
+        if result != 0:
+            self.cleanup()
+            # end of score
+            if result == 2:
+                if loop == True:
+                    assert self.csd is not None, "Tried to restart without a reference to any CSD"
+                    self.k = 0
+                    self.start_halting(self.csd)
+            else:
+                logging.critical(f"URGENT. Result: {result} | k: {self.k}")
+                sys.exit(result)
+        return result
 
     def cleanup(self, exit=False):
         exit_code = self.cs.cleanup()
         self.cs.reset()
-        self.k = 0
         if exit:
             del self.cs
             sys.exit(exit_code)

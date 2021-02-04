@@ -10,7 +10,6 @@ from player import Player
 AMEN = "amen_trim.wav"
 NOISE = "noise.wav"
 
-
 LIVE = "adc"
 AUDIO_INPUT_FOLDER = "rave/input_audio/"
 AUDIO_OUTPUT_FOLDER = "rave/bounces/"
@@ -28,13 +27,17 @@ class Sound:
     TODO: add customization options for I/O, flags etc.
     """
 
-    def __init__(self, filename):
+    def __init__(self, filename, output_file_path=None, loop=True):
         rel_path = os.path.join(AUDIO_INPUT_FOLDER, filename)
         assert os.path.isfile(rel_path), f"Couldn't find {rel_path}"
         self.filename = filename
         self.input_file_path = rel_path
+        AUDIO_OUTPUT_FILE = f"{os.path.splitext(self.filename)[0]}_{timestamp()}.wav"
+        self.output_file_path = os.path.join(
+            AUDIO_OUTPUT_FOLDER, output_file_path if output_file_path is not None else AUDIO_OUTPUT_FILE)
         self.get_properties()
         self.player = None
+        self.loop = loop
         self.csd = None
 
     def get_properties(self):
@@ -64,16 +67,12 @@ class Sound:
         analyzer_csd = self.compile_analyzer(
             osc_route=analyzer_osc_route) if analyzer_osc_route is not None else ""
 
-        AUDIO_OUTPUT_FILE = f"{os.path.splitext(self.filename)[0]}_{effect.name if effect is not None else ''}_{timestamp()}.wav"
-        output_file_path = os.path.join(
-            AUDIO_OUTPUT_FOLDER, AUDIO_OUTPUT_FILE)
-
         base = TemplateHandler(
             "base.csd.jinja2", template_dir=EFFECTS_TEMPLATE_DIR)
         channels = effect.get_csd_channels() if effect is not None else []
         self.csd = base.compile(
             input=self.input_file_path,
-            output=output_file_path,
+            output=self.output_file_path,
             channels=channels,
             sample_rate=SAMPLE_RATE,
             ksmps=KSMPS,
@@ -87,13 +86,15 @@ class Sound:
             "rave/csd", f"{os.path.splitext(self.filename)[0]}_{timestamp()}.csd"))
         return self.csd
 
-    def render(self, mapping=None, n_frames=1):
+    def render(self, mapping=None):
         """
-        Applies the mapping to the sound object and renders n_frames
+        Applies the mapping to the sound object
 
         Args:
             mapping: a dict of parameter values corresponding to the parameters in the Effect
-            n_frames: number of audio frames to render
+
+        Returns:
+            a boolean indicating if the rendered frame was the last one (True) or not (False)
         """
         if self.csd is None:
             raise Exception("render is called prior to apply_effect")
@@ -105,16 +106,9 @@ class Sound:
         if mapping is not None:
             self.player.set_channels(mapping)
 
-        for i in range(n_frames):
-            self.player.render_one_frame()
-
-        """
-        import time
-        start = time.time()
-            print(["rms", "pitch_n", "centroid", "flux"])
-            print(list(self.player.get_channels(
-                ["rms", "pitch_n", "centroid", "flux"])))
-        end = time.time()
-
-        print(f"\nSpent {end - start} seconds rendering {n_frames} frames \n")
-        """
+        result = self.player.render_one_frame(loop=self.loop)
+        if result == 0:
+            done = False
+        else:
+            done = True
+        return done

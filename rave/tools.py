@@ -2,8 +2,12 @@ import librosa
 import librosa.display
 import numpy as np
 import matplotlib.pyplot as plt
+
 import subprocess
 import datetime
+import wave
+import glob
+import sys
 
 
 def k_to_sec(ksmps=64, sr=44100):
@@ -36,7 +40,7 @@ def timestamp():
     return datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")
 
 
-def plot_melspectrogram(S: np.ndarray, sr=22050):
+def plot_melspectrogram(S: np.ndarray, sr=44100):
     """
     Plots the mel spectrogram
     """
@@ -49,7 +53,7 @@ def plot_melspectrogram(S: np.ndarray, sr=22050):
     plt.show()
 
 
-def plot_mfcc(mfccs: np.ndarray, sr=22050):
+def plot_mfcc(mfccs: np.ndarray, sr=44100):
     """
     Plots the mel cepstral coefficients
     """
@@ -70,13 +74,27 @@ def plot_1d(y: np.ndarray, title='RMS'):
     plt.show()
 
 
-def plot_wav(wav_file: str, sr=22050):
+def plot_wav(wav_file: str, save_to=None, sr=44100):
     """
     Plots a static wave file with matplotlib
     """
     samples = librosa.load(wav_file, sr)[0]
     plt.plot(samples)
-    plt.show()
+    if save_to is not None:
+        plt.savefig(save_to)
+    else:
+        plt.show()
+
+
+def plot_wavs_on_top_of_eachother(wav_files: [str], save_to=None, sr=44100):
+    for wav_file in wav_files:
+        samples = librosa.load(wav_file, sr)[0]
+        plt.plot(samples)
+    plt.legend(wav_files)
+    if save_to is not None:
+        plt.savefig(save_to)
+    else:
+        plt.show()
 
 
 def play_wav(wav_file: str):
@@ -87,6 +105,6 @@ def play_wav(wav_file: str):
 
 
 if __name__ == "__main__":
-    dur = get_duration("rave/input_audio/amen.wav")
-    assert type(dur) == float
-    assert dur == 5.564717, "File duration doesn't match soxi's output"
+    path = "rave/bounces/*render*.wav"
+    wav_paths = glob.glob(path)
+    plot_wavs_on_top_of_eachother(wav_paths, save_to="rave/plots/wavs.jpg")

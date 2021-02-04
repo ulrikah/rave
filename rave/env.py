@@ -11,6 +11,7 @@ from metrics import EuclideanDistance, AbstractMetric
 from effect import Effect
 from sound import Sound
 from mediator import Mediator
+from tools import timestamp
 
 AMEN = "amen_trim.wav"
 NOISE = "noise.wav"
@@ -29,21 +30,24 @@ class Env(gym.Env):
 
     def __init__(self, effect: Effect, metric: AbstractMetric, mode: Mode):
         # TODO: define target and source sounds from settings or similar
-        self.source = Sound(NOISE)
-        self.target = Sound(AMEN)
+        self.source_input = NOISE
+        self.target_input = AMEN
+        self.source = Sound(self.source_input)
+        self.target = Sound(self.target_input)
 
         self.effect = effect
         self.metric = metric
         self.mode = mode
-        self.mapping = None  # or init to random?
+        self.mapping = self.effect.random_mapping()
+        self.mappings = []
 
         lows = np.array([p.mapping.min_value for p in effect.parameters])
         highs = np.array([p.mapping.max_value for p in effect.parameters])
         self.action_space = gym.spaces.Box(
             low=lows, high=highs, dtype=np.float)
 
-        # TODO: set this dynamically based on analysis params
-        self.observation_space = gym.spaces.Box(low=0.0, high=1.0, shape=(4,))
+        self.observation_space = gym.spaces.Box(
+            low=0.0, high=1.0, shape=(len(ANALYSIS_CHANNELS),))
 
         self.source.apply_effect(
             effect=self.effect, analyzer_osc_route="/rave/source/features")
@@ -63,8 +67,9 @@ class Env(gym.Env):
         assert self.action_space.contains(action)
 
         self.mapping = self.effect.mapping_from_array(action)
-        self.source.render(mapping=self.mapping)
-        self.target.render()
+        self.mappings.append(self.mapping)
+        source_done = self.source.render(mapping=self.mapping)
+        target_done = self.target.render()
 
         if self.mode == Mode.LIVE:
             source, target = self.mediator.get_features()
@@ -75,16 +80,24 @@ class Env(gym.Env):
                 self.target.player.get_channels(ANALYSIS_CHANNELS))
 
         reward = self.calculate_reward(source, target)
-        return self.get_state(), reward, False, {}
+        done = source_done or target_done
+        if done:
+            self.render()
+            self._reset_mappings()
+        return self.get_state(), reward, done, {}
 
     def get_state(self):
-        assert self.mapping is not None
         return self.mapping
+
+    def _reset_mappings(self):
+        self.mapping = self.effect.random_mapping()
+        self.mappings = [self.mapping]
 
     def reset(self):
         if self.mode == LIVE:
             self.mediator.clear()
-        raise NotImplementedError
+        self._reset_mappings()
+        return self.get_state()
 
     def calculate_reward(self, source, target):
         assert source.shape == target.shape
@@ -96,16 +109,29 @@ class Env(gym.Env):
         raise NotImplementedError
 
     def render(self):
-        raise NotImplementedError
+        """
+        Renders a file with all the mappings from the episode
+        """
+        done = False
+        source = Sound(self.source_input,
+                       output_file_path=f"{self.effect.name}_render_{timestamp()}.wav", loop=False)
+        source.apply_effect(effect=self.effect)
+        for mapping in self.mappings[:-1]:
+            done = source.render(mapping=mapping)
+            if done:
+                break
 
 
 if __name__ == "__main__":
-    effect = Effect("distortion")
+    effect = Effect("bandpass")
     metric = EuclideanDistance()
     env = Env(effect, metric, mode=Mode.STATIC)
-    for i in range(100):
+
+    N = 10000
+    for i in range(N):
         action = env.action_space.sample()
-        state, reward, _, _ = env.step(action)
-        print(reward)
+        state, reward, done, _ = env.step(action)
+        if i % 1000 == 0:
+            print(f"\nREWARD: {reward} \n")
 
     # TODO: where do we send the next audio?
