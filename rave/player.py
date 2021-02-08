@@ -2,6 +2,7 @@ import ctcsound
 
 import sys
 import logging
+import numpy as np
 
 
 class Player:
@@ -33,7 +34,7 @@ class Player:
             self.cs.setControlChannel(name, value)
 
     def get_channels(self, channels):
-        return [self.cs.controlChannel(channel)[0] for channel in channels]
+        return np.array([self.cs.controlChannel(channel)[0] for channel in channels])
 
     def render_one_frame(self, loop):
         """Performs one k-rate update of the compiled csd"""

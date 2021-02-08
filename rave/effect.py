@@ -25,7 +25,7 @@ class Effect:
         """
 
         effect = self.parse_effect_from_json(
-            f"rave/effects/{effect_name}.json")
+            f"/Users/ulrikah/fag/thesis/rave/rave/effects/{effect_name}.json")
 
         self.parameters = effect.parameters
         self.name = effect_name
@@ -75,6 +75,7 @@ def main():
     effect = Effect("bandpass")
     INPUT_AUDIO = "rave/input_audio"
     sound_source = "amen.wav"
+
     input_file_path = os.path.join(INPUT_AUDIO, sound_source)
 
     player = Player()

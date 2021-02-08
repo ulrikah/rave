@@ -23,12 +23,19 @@ class Mode(Enum):
     STATIC = "static"
 
 
+DEFAULT_CONFIG = {
+    "effect": Effect("bandpass"),
+    "metric": EuclideanDistance(),
+    "mode": Mode.STATIC
+}
+
+
 class CrossAdaptiveEnv(gym.Env):
     """
     Environment for learning crossadaptive processing with reinforcement learning
     """
 
-    def __init__(self, config):
+    def __init__(self, config=DEFAULT_CONFIG):
         # TODO: define target and source sounds from config
         self.source_input = NOISE
         self.target_input = AMEN
@@ -39,19 +46,18 @@ class CrossAdaptiveEnv(gym.Env):
         self.metric = config["metric"]
         self.mode = config["mode"]
 
-        self.numerical_mapping = self.effect.random_numerical_mapping()
-        self.mapping = self.effect.mapping_from_numerical_array(
-            self.numerical_mapping)
-        self.mappings = []
-
+        # TODO: use (0, 1) range for actions and scale up when rendering, i.e. in mapping_from_numerical
         lows = np.array([p.mapping.min_value for p in self.effect.parameters])
         highs = np.array([p.mapping.max_value for p in self.effect.parameters])
         self.action_space = gym.spaces.Box(
             low=lows, high=highs, dtype=float)
-        self.observation_space = self.action_space
 
-        # self.observation_space = gym.spaces.Box(
-        #     low=0.0, high=1.0, shape=(len(ANALYSIS_CHANNELS),))
+        self.observation_space = gym.spaces.Box(
+            low=0.0, high=1.0, shape=(len(ANALYSIS_CHANNELS),))
+
+        self.source_features = np.zeros(shape=len(ANALYSIS_CHANNELS))
+        self.numerical_mapping, self.mapping, self.mappings = None, None, []
+        self._reset_mappings()
 
         self.source.apply_effect(
             effect=self.effect, analyzer_osc_route="/rave/source/features")
@@ -74,8 +80,6 @@ class CrossAdaptiveEnv(gym.Env):
             TODO:
             map between output of the agent (probably best to keep it in the (0, 1) range)
             and a mapping in the effects
-
-            also: get_state() should return the (0, 1 mapping)
         """
         self.numerical_mapping = action
         self.mapping = self.effect.mapping_from_numerical_array(action)
@@ -84,14 +88,16 @@ class CrossAdaptiveEnv(gym.Env):
         target_done = self.target.render()
 
         if self.mode == Mode.LIVE:
-            source, target = self.mediator.get_features()
+            source_features, target_features = self.mediator.get_features()
         else:
-            source = torch.tensor(
-                self.source.player.get_channels(ANALYSIS_CHANNELS))
-            target = torch.tensor(
-                self.target.player.get_channels(ANALYSIS_CHANNELS))
+            source_features = self.source.player.get_channels(
+                ANALYSIS_CHANNELS)
+            target_features = self.target.player.get_channels(
+                ANALYSIS_CHANNELS)
 
-        reward = self.calculate_reward(source, target)
+        self.source_features = source_features
+
+        reward = self.calculate_reward(source_features, target_features)
         done = source_done or target_done
         if done:
             self.render()
@@ -99,11 +105,11 @@ class CrossAdaptiveEnv(gym.Env):
         return self.get_state(), reward, done, {}
 
     def get_state(self):
-        return self.numerical_mapping
+        return self.source_features
 
     def _reset_mappings(self):
         self.numerical_mapping = self.effect.random_numerical_mapping()
-        self.mappings = self.effect.mapping_from_numerical_array(
+        self.mapping = self.effect.mapping_from_numerical_array(
             self.numerical_mapping)
         self.mappings = [self.mapping]
 
@@ -139,14 +145,7 @@ class CrossAdaptiveEnv(gym.Env):
 
 
 if __name__ == "__main__":
-    effect = Effect("bandpass")
-    metric = EuclideanDistance()
-    config = {
-        "effect": effect,
-        "metric": metric,
-        "mode": Mode.STATIC
-    }
-    env = CrossAdaptiveEnv(config)
+    env = CrossAdaptiveEnv()
 
     N = 10000
     for i in range(N):

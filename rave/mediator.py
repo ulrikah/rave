@@ -1,5 +1,4 @@
 import numpy as np
-import torch
 import time
 from queue import SimpleQueue
 from osc_server import OscServer
@@ -28,9 +27,9 @@ class Mediator:
 
     def get_features(self):
         """
-        Pops an array of features off both queues and converts them to torch.Tensor objects
+        Pops an array of features off both queues and converts them to numpy arrays
         """
-        return torch.tensor(self.get_source_features()), torch.tensor(self.get_target_features())
+        return np.array(self.get_source_features()), np.array(self.get_target_features())
 
     def get_source_features(self):
         if not self.source_q.empty():

@@ -90,6 +90,7 @@ def plot_wavs_on_top_of_eachother(wav_files: [str], save_to=None, sr=44100):
     for wav_file in wav_files:
         samples = librosa.load(wav_file, sr)[0]
         plt.plot(samples)
+    plt.ylim(-1, 1)
     plt.legend(wav_files)
     if save_to is not None:
         plt.savefig(save_to)
@@ -105,6 +106,11 @@ def play_wav(wav_file: str):
 
 
 if __name__ == "__main__":
-    path = "rave/bounces/*render*.wav"
+    path = "rave/bounces/bandpass_render_20210208_14*.wav"
     wav_paths = glob.glob(path)
-    plot_wavs_on_top_of_eachother(wav_paths, save_to="rave/plots/wavs.jpg")
+    wav_paths = [
+        "rave/bounces/bandpass_render_20210208_142956_708179_noise.wav",
+        # "rave/input_audio/noise.wav",
+        # "rave/input_audio/amen.wav"
+    ]
+    plot_wavs_on_top_of_eachother(wav_paths, save_to="rave/plots/dry_wet.jpg")

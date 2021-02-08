@@ -12,11 +12,11 @@ NOISE = "noise.wav"
 
 LIVE = "adc"
 NO_SOUND = "--nosound"
-AUDIO_INPUT_FOLDER = "rave/input_audio/"
-AUDIO_OUTPUT_FOLDER = "rave/bounces/"
+AUDIO_INPUT_FOLDER = "/Users/ulrikah/fag/thesis/rave/rave/input_audio/"
+AUDIO_OUTPUT_FOLDER = "/Users/ulrikah/fag/thesis/rave/rave/bounces/"
 AUDIO_INPUT_FILE = AMEN
 FLAGS = "-W"  # write WAVE instead of AIFF
-EFFECTS_TEMPLATE_DIR = "rave/effects"
+EFFECTS_TEMPLATE_DIR = "/Users/ulrikah/fag/thesis/rave/rave/effects"
 SAMPLE_RATE = 44100
 KSMPS = 64
 
@@ -30,7 +30,8 @@ class Sound:
 
     def __init__(self, filename, output_file_path=None, loop=True):
         rel_path = os.path.join(AUDIO_INPUT_FOLDER, filename)
-        assert os.path.isfile(rel_path), f"Couldn't find {rel_path}"
+        assert os.path.isfile(
+            rel_path), f"Couldn't find {rel_path} from {os.getcwd()}"
         self.filename = filename
         self.input_file_path = rel_path
         if output_file_path is None:
@@ -86,7 +87,7 @@ class Sound:
                 AUDIO_INPUT_FOLDER, AUDIO_INPUT_FILE))
         )
         base.save_to_file(os.path.join(
-            "rave/csd", f"{os.path.splitext(self.filename)[0]}_{timestamp()}.csd"))
+            "/Users/ulrikah/fag/thesis/rave/rave/csd", f"{os.path.splitext(self.filename)[0]}_{timestamp()}.csd"))
         return self.csd
 
     def render(self, mapping=None):
