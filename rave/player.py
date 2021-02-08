@@ -9,6 +9,7 @@ class Player:
     def __init__(self):
         self.k = 0
         self.cs = ctcsound.Csound()
+        self.cs.setOption("--nodisplays")
         self.csd = None
 
     def render_csd(self, csd: str, exit=False):
@@ -36,7 +37,7 @@ class Player:
     def get_channels(self, channels):
         return np.array([self.cs.controlChannel(channel)[0] for channel in channels])
 
-    def render_one_frame(self, loop):
+    def render_one_frame(self, loop=True):
         """Performs one k-rate update of the compiled csd"""
         result = self.cs.performKsmps()
         self.k += 1
@@ -62,30 +63,6 @@ class Player:
 
 if __name__ == "__main__":
 
-    from effect import Effect
-    from tools import timestamp
-    import os
-    from template_handler import TemplateHandler
-
-    EFFECTS_TEMPLATE_DIR = "rave/effects"
-    effect = Effect("bandpass")
-    mapping = effect.random_mapping()
-    effect_csd = TemplateHandler(
-        f"{effect.name}.csd.jinja2", template_dir=EFFECTS_TEMPLATE_DIR).compile(mapping)
-
-    base_csd = TemplateHandler(
-        "base_no_score.csd.jinja2", template_dir=EFFECTS_TEMPLATE_DIR)
-
-    csd = base_csd.compile(
-        input="rave/input_audio/amen_trim.wav",
-        output=f"rave/bounces/amen_trim_{effect.name}_{timestamp()}.wav",
-        sample_rate=44100,
-        ksmps=64,
-        flags="-W",
-        effect=effect_csd,
-        analyzer="",
-    )
-
     test = """
     <CsoundSynthesizer>
     <CsOptions>
@@ -102,6 +79,17 @@ if __name__ == "__main__":
     ksmps = 32
     nchnls = 2
     0dbfs  = 1
+
+    gi1         ftgen   1, 0, 32, -2, 0  ; analysis signal display
+
+    giSine	    ftgen	0, 0, 65536, 10, 1			; sine wave
+    gifftsize 	= 1024
+                chnset gifftsize, "fftsize"
+    giFftTabSize	= (gifftsize / 2)+1
+    gifna     	ftgen   1 ,0 ,giFftTabSize, 7, 0, giFftTabSize, 0   	; for pvs analysis
+    gifnf     	ftgen   2 ,0 ,giFftTabSize, 7, 0, giFftTabSize, 0   	; for pvs analysis
+
+    giSinEnv    ftgen   0, 0, 8192, 19, 1, 0.5, 270, 0.5        ; sinoid transient envelope shape for autocorr
 
     instr 1
         kCount    init      0; set kcount to 0 first
@@ -125,5 +113,4 @@ if __name__ == "__main__":
     for i in range(3):
         player.render_one_frame()
         """Performs one k-rate update of the compiled csd"""
-        print(player.k)
     player.cleanup()
