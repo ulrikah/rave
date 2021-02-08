@@ -206,18 +206,17 @@ endif
 ; ***************
 ; limiter to (0, 1) range
     krms            limit krms, 0, 1
+    kcentroid_l         limit kcentroid_n, 0, 1
     kflux_l         limit kflux_n, 0, 1
+    
     
 ; ***************
 ; return features
 
 chnset krms, "rms"
 chnset kpitch_n, "pitch_n"
-chnset kcentroid, "centroid"
-chnset krms, "flux"
+chnset kcentroid_l, "centroid"
+chnset kflux_l, "flux"
 
-; OSCsend kwhen, $IP_ADDRESS, $PORT, "{{ osc_route }}", "ffff", krms, kpitch_n, kcentroid_n, kflux_l
-; String sprintfk "rms : %f | pitch : %f | cent : %f | flux : %f", krms, kpitch_n, kcentroid_n, kflux_l
-; puts String, kwhen
+; OSCsend kwhen, $IP_ADDRESS, $PORT, "{{ osc_route }}", "ffff", krms, kpitch_n, kcentroid_l, kflux_l
 kwhen += km
-    
