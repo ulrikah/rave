@@ -28,8 +28,6 @@ def train_naively():
     ray.init()
     agent = ppo.PPOTrainer(config=config)
     env = env.CrossAdaptiveEnv(env.DEFAULT_CONFIG)
-    import pdb
-    pdb.set_trace()
     obs = env.reset()
     done = False
 
@@ -47,4 +45,4 @@ if __name__ == "__main__":
             "episode_reward_mean": 0.8
         },
         local_dir=RAY_RESULTS_DIR,
-        num_samples=15)
+        num_samples=100)

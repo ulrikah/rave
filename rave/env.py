@@ -15,6 +15,7 @@ from tools import timestamp
 
 AMEN = "amen_trim.wav"
 NOISE = "noise.wav"
+SINE = "sine220.wav"
 ANALYSIS_CHANNELS = ["rms", "pitch_n", "centroid", "flux"]
 
 
@@ -46,18 +47,11 @@ class CrossAdaptiveEnv(gym.Env):
         self.metric = config["metric"]
         self.mode = config["mode"]
 
-        # TODO: use (0, 1) range for actions and scale up when rendering, i.e. in mapping_from_numerical
-        lows = np.array([p.mapping.min_value for p in self.effect.parameters])
-        highs = np.array([p.mapping.max_value for p in self.effect.parameters])
-        self.action_space = gym.spaces.Box(
-            low=lows, high=highs, dtype=float)
-
         self.observation_space = gym.spaces.Box(
             low=0.0, high=1.0, shape=(len(ANALYSIS_CHANNELS),))
 
-        self.source_features = np.zeros(shape=len(ANALYSIS_CHANNELS))
-        self.numerical_mapping, self.mapping, self.mappings = None, None, []
-        self._reset_mappings()
+        self.action_space = gym.spaces.Box(
+            low=0.0, high=1.0, shape=(len(self.effect.parameters),))
 
         self.source.apply_effect(
             effect=self.effect, analyzer_osc_route="/rave/source/features")
@@ -67,6 +61,18 @@ class CrossAdaptiveEnv(gym.Env):
         if self.mode == Mode.LIVE:
             self.mediator = Mediator()
 
+        self.actions = []
+        self.source_features = np.zeros(shape=len(ANALYSIS_CHANNELS))
+
+    def action_to_mapping(self, action: np.ndarray):
+        assert len(action) == len(
+            self.effect.parameters), "Number of params doesn't match length of action"
+        mapping = {}
+        for i, p in enumerate(self.effect.parameters):
+            fp = [p.mapping.min_value, p.mapping.max_value]
+            mapping[p.name] = np.interp(action[i], [0.0, 1.0], fp)
+        return mapping
+
     def step(self, action: np.ndarray):
         """
         Algorithm:
@@ -75,16 +81,11 @@ class CrossAdaptiveEnv(gym.Env):
             Use features to calculate reward
         """
         assert self.action_space.contains(action)
+        self.actions.append(action)
 
-        """
-            TODO:
-            map between output of the agent (probably best to keep it in the (0, 1) range)
-            and a mapping in the effects
-        """
-        self.numerical_mapping = action
-        self.mapping = self.effect.mapping_from_numerical_array(action)
-        self.mappings.append(self.mapping)
-        source_done = self.source.render(mapping=self.mapping)
+        mapping = self.action_to_mapping(action)
+
+        source_done = self.source.render(mapping=mapping)
         target_done = self.target.render()
 
         if self.mode == Mode.LIVE:
@@ -101,22 +102,16 @@ class CrossAdaptiveEnv(gym.Env):
         done = source_done or target_done
         if done:
             self.render()
-            self._reset_mappings()
+            self.reset()
         return self.get_state(), reward, done, {}
 
     def get_state(self):
         return self.source_features
 
-    def _reset_mappings(self):
-        self.numerical_mapping = self.effect.random_numerical_mapping()
-        self.mapping = self.effect.mapping_from_numerical_array(
-            self.numerical_mapping)
-        self.mappings = [self.mapping]
-
     def reset(self):
         if self.mode == Mode.LIVE:
             self.mediator.clear()
-        self._reset_mappings()
+        self.actions = []
         return self.get_state()
 
     def calculate_reward(self, source, target):
@@ -132,13 +127,14 @@ class CrossAdaptiveEnv(gym.Env):
 
     def render(self):
         """
-        Renders a file with all the mappings from the episode
+        Renders a file with all the actions from the episode
         """
         done = False
         source = Sound(
             self.source_input, output_file_path=f"{self.effect.name}_render_{timestamp()}_{self.source_input}", loop=False)
         source.apply_effect(effect=self.effect)
-        for mapping in self.mappings[:-1]:
+        for action in self.actions:
+            mapping = self.action_to_mapping(action)
             done = source.render(mapping=mapping)
             if done:
                 break
@@ -153,3 +149,4 @@ if __name__ == "__main__":
         state, reward, done, _ = env.step(action)
         if i % 1000 == 0:
             print(f"\nREWARD: {reward} \n")
+    env.render()
