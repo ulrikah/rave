@@ -7,7 +7,7 @@ __pycache__/
 
 # jupyter
 .ipynb_checkpoints/
-notebooks/
+# notebooks/
 
 # poetry
 .venv/

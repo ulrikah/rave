@@ -16,7 +16,7 @@ def k_to_sec(ksmps=64, sr=44100):
 
 
 def k_per_sec(ksmps=64, sr=44100):
-    """How many ksmps are there in 1 second of sample rate sr?"""
+    """How many k are there in 1 second of sample rate sr?"""
     return (sr / ksmps)
 
 

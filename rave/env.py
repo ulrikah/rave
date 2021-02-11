@@ -11,7 +11,7 @@ from metrics import EuclideanDistance, AbstractMetric
 from effect import Effect
 from sound import Sound
 from mediator import Mediator
-from tools import timestamp
+from tools import timestamp, play_wav
 
 AMEN = "amen_trim.wav"
 NOISE = "noise.wav"
@@ -138,6 +138,7 @@ class CrossAdaptiveEnv(gym.Env):
             done = source.render(mapping=mapping)
             if done:
                 break
+        return source.output
 
 
 if __name__ == "__main__":
@@ -149,4 +150,5 @@ if __name__ == "__main__":
         state, reward, done, _ = env.step(action)
         if i % 1000 == 0:
             print(f"\nREWARD: {reward} \n")
-    env.render()
+    path = env.render()
+    play_wav(path)
