@@ -26,6 +26,8 @@ class Player:
 
     def start_halting(self, csd: str):
         """Compiles the CSD and starts the engine, but wait for render function to actually render a k"""
+        self.cs.createMessageBuffer(False)
+        self._has_message_buffer = True
         self.csd = csd
         self.cs.compileCsdText(csd)
         self.cs.start()
@@ -55,6 +57,9 @@ class Player:
         return result
 
     def cleanup(self, exit=False):
+        if self._has_message_buffer:
+            self.cs.destroyMessageBuffer()
+            self._has_message_buffer = False
         exit_code = self.cs.cleanup()
         self.cs.reset()
         if exit:
