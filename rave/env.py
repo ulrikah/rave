@@ -27,7 +27,9 @@ class Mode(Enum):
 DEFAULT_CONFIG = {
     "effect": Effect("bandpass"),
     "metric": EuclideanDistance(),
-    "mode": Mode.STATIC
+    "mode": Mode.STATIC,
+    "source": NOISE,
+    "target": AMEN
 }
 
 
@@ -37,15 +39,14 @@ class CrossAdaptiveEnv(gym.Env):
     """
 
     def __init__(self, config=DEFAULT_CONFIG):
-        # TODO: define target and source sounds from config
-        self.source_input = NOISE
-        self.target_input = AMEN
-        self.source = Sound(self.source_input)
-        self.target = Sound(self.target_input)
-
+        self.source_input = config["source"]
+        self.target_input = config["target"]
         self.effect = config["effect"]
         self.metric = config["metric"]
         self.mode = config["mode"]
+
+        self.source = Sound(self.source_input)
+        self.target = Sound(self.target_input)
 
         self.observation_space = gym.spaces.Box(
             low=0.0, high=1.0, shape=(len(ANALYSIS_CHANNELS),))
@@ -54,14 +55,15 @@ class CrossAdaptiveEnv(gym.Env):
             low=0.0, high=1.0, shape=(len(self.effect.parameters),))
 
         self.source.apply_effect(
-            effect=self.effect, analyzer_osc_route="/rave/source/features")
+            effect=self.effect, analyze=True)
         self.target.apply_effect(
-            effect=None, analyzer_osc_route="/rave/target/features")
+            effect=None, analyze=True)
 
         if self.mode == Mode.LIVE:
             self.mediator = Mediator()
 
         self.actions = []
+        self.rewards = []
         self.source_features = np.zeros(shape=len(ANALYSIS_CHANNELS))
 
     def action_to_mapping(self, action: np.ndarray):
@@ -100,6 +102,7 @@ class CrossAdaptiveEnv(gym.Env):
 
         reward = self.calculate_reward(source_features, target_features)
         done = source_done or target_done
+
         if done:
             self.render()
             self.reset()
@@ -112,11 +115,14 @@ class CrossAdaptiveEnv(gym.Env):
         if self.mode == Mode.LIVE:
             self.mediator.clear()
         self.actions = []
+        self.rewards = []
         return self.get_state()
 
     def calculate_reward(self, source, target):
         assert source.shape == target.shape
-        return self.metric.calculate_reward(source, target)
+        reward = self.metric.calculate_reward(source, target)
+        self.rewards.append(reward)
+        return reward
 
     def close(self):
         if self.mode == Mode.LIVE:
