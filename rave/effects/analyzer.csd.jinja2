@@ -218,5 +218,7 @@ chnset kpitch_n, "pitch_n"
 chnset kcentroid_l, "centroid"
 chnset kflux_l, "flux"
 
-; OSCsend kwhen, $IP_ADDRESS, $PORT, "{{ osc_route }}", "ffff", krms, kpitch_n, kcentroid_l, kflux_l
+{% if osc_route is defined %}
+    OSCsend kwhen, $IP_ADDRESS, $PORT, "{{ osc_route }}", "ffff", krms, kpitch_n, kcentroid_l, kflux_l
+{% endif %}
 kwhen += km
