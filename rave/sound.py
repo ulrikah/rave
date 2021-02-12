@@ -55,10 +55,10 @@ class Sound:
         return TemplateHandler(f"{effect.name}.csd.jinja2", template_dir=EFFECTS_TEMPLATE_DIR).compile()
 
     @staticmethod
-    def compile_analyzer(osc_route: str):
+    def compile_analyzer(osc_route: str = "/rave/target/features"):
         return TemplateHandler("analyzer.csd.jinja2", template_dir=EFFECTS_TEMPLATE_DIR).compile(osc_route=osc_route)
 
-    def apply_effect(self, effect: Effect = None, analyzer_osc_route=None):
+    def apply_effect(self, effect: Effect = None, analyze=True, osc_route=None):
         """
         Applies an effect to the sound object
 
@@ -69,7 +69,7 @@ class Sound:
         effect_csd = self.compile_effect(
             effect) if effect is not None else None
         analyzer_csd = self.compile_analyzer(
-            osc_route=analyzer_osc_route) if analyzer_osc_route is not None else ""
+            osc_route=osc_route) if analyze else ""
 
         base = TemplateHandler(
             "base.csd.jinja2", template_dir=EFFECTS_TEMPLATE_DIR)
@@ -110,9 +110,5 @@ class Sound:
         if mapping is not None:
             self.player.set_channels(mapping)
 
-        result = self.player.render_one_frame(loop=self.loop)
-        if result == 0:
-            done = False
-        else:
-            done = True
+        done = self.player.render_one_frame(loop=self.loop)
         return done
