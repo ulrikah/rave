@@ -48,9 +48,11 @@ class CrossAdaptiveEnv(gym.Env):
         self.source = Sound(self.source_input)
         self.target = Sound(self.target_input)
 
+        # an observation = 1 x audio frame from both source and target
         self.observation_space = gym.spaces.Box(
-            low=0.0, high=1.0, shape=(len(ANALYSIS_CHANNELS),))
+            low=0.0, high=1.0, shape=(len(ANALYSIS_CHANNELS) * 2,))
 
+        # an action = a combination of effect parameters
         self.action_space = gym.spaces.Box(
             low=0.0, high=1.0, shape=(len(self.effect.parameters),))
 
@@ -65,6 +67,7 @@ class CrossAdaptiveEnv(gym.Env):
         self.actions = []
         self.rewards = []
         self.source_features = np.zeros(shape=len(ANALYSIS_CHANNELS))
+        self.target_features = np.zeros(shape=len(ANALYSIS_CHANNELS))
 
     def action_to_mapping(self, action: np.ndarray):
         assert len(action) == len(
@@ -99,6 +102,7 @@ class CrossAdaptiveEnv(gym.Env):
                 ANALYSIS_CHANNELS)
 
         self.source_features = source_features
+        self.target_features = target_features
 
         reward = self.calculate_reward(source_features, target_features)
         done = source_done or target_done
@@ -109,7 +113,7 @@ class CrossAdaptiveEnv(gym.Env):
         return self.get_state(), reward, done, {}
 
     def get_state(self):
-        return self.source_features
+        return np.concatenate(self.source_features, self.target_features)
 
     def reset(self):
         if self.mode == Mode.LIVE:
