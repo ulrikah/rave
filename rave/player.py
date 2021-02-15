@@ -10,7 +10,7 @@ class Player:
         self.k = 0
         self.cs = ctcsound.Csound()
         self.csd = None
-        self.debug = True
+        self.debug = False
         if not self.debug:
             self.cs.setOption("--nodisplays")
 

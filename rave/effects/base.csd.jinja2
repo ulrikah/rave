@@ -23,6 +23,7 @@ instr	1
 {% else %}
     aOut = aIn
 {% endif %}
+    // analyzer uses aOut as input
     {{ analyzer }}
     out aOut
 endin

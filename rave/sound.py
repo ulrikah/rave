@@ -1,6 +1,8 @@
 import os
 import wave
 
+import numpy as np
+
 from effect import Effect
 from template_handler import TemplateHandler
 from tools import timestamp, get_duration, k_to_sec
@@ -86,8 +88,9 @@ class Sound:
             duration=get_duration(os.path.join(
                 AUDIO_INPUT_FOLDER, AUDIO_INPUT_FILE))
         )
-        base.save_to_file(os.path.join(
-            "/Users/ulrikah/fag/thesis/rave/rave/csd", f"{os.path.splitext(self.filename)[0]}_{timestamp()}.csd"))
+        save_to_path = os.path.join(
+            "/Users/ulrikah/fag/thesis/rave/rave/csd", f"{os.path.splitext(self.filename)[0]}_{timestamp()}.csd")
+        base.save_to_file(save_to_path)
         return self.csd
 
     def render(self, mapping=None):
@@ -112,3 +115,20 @@ class Sound:
 
         done = self.player.render_one_frame(loop=self.loop)
         return done
+
+
+if __name__ == "__main__":
+    ANALYSIS_CHANNELS = ["rms", "pitch_n", "centroid", "flux"]
+    fx = Effect("bandpass")
+    dry = Sound(AMEN)
+    dry.apply_effect()
+    wet = Sound(AMEN)
+    wet.apply_effect(fx)
+
+    for i in range(100):
+        dry.render()
+        wet.render()
+        dry_chans = dry.player.get_channels(ANALYSIS_CHANNELS)
+        wet_chans = wet.player.get_channels(ANALYSIS_CHANNELS)
+        assert not np.array_equal(
+            dry_chans, wet_chans), "Dry and wet should not be equal"
