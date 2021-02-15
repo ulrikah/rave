@@ -42,6 +42,11 @@ class Player:
     def get_channels(self, channels):
         return np.array([self.cs.controlChannel(channel)[0] for channel in channels])
 
+    def render_until_end(self):
+        while self.cs.performKsmps() == 0:
+            pass
+        self.cleanup()
+
     def render_one_frame(self, loop=True):
         """Performs one k-rate update of the compiled csd"""
         result = self.cs.performKsmps()

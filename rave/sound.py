@@ -14,6 +14,7 @@ NOISE = "noise.wav"
 
 LIVE = "adc"
 NO_SOUND = "--nosound"
+DAC = "dac"
 AUDIO_INPUT_FOLDER = "/Users/ulrikah/fag/thesis/rave/rave/input_audio/"
 AUDIO_OUTPUT_FOLDER = "/Users/ulrikah/fag/thesis/rave/rave/bounces/"
 AUDIO_INPUT_FILE = AMEN
@@ -38,7 +39,7 @@ class Sound:
         self.input_file_path = rel_path
         if output_file_path is None:
             # TODO: don't use -o dac at all when --nosound flag is set
-            self.output = "dac --nosound"
+            self.output = f"{DAC} {NO_SOUND}"
         else:
             self.output = os.path.join(AUDIO_OUTPUT_FOLDER, output_file_path)
         self.get_properties()
@@ -115,6 +116,23 @@ class Sound:
 
         done = self.player.render_one_frame(loop=self.loop)
         return done
+
+    def bounce(self):
+        """
+        Renders a sound until it ends. Creates a new Player instance to start fresh
+
+        Returns:
+            the path to the bounce
+        """
+        assert not self.output.startswith(
+            DAC), "Can't bounce a sound that is sent to DAC"
+        if self.player:
+            self.player.cleanup()
+            del self.player
+        self.player = Player()
+        self.player.start_halting(self.csd)
+        self.player.render_until_end()
+        return self.output
 
 
 if __name__ == "__main__":
