@@ -113,7 +113,7 @@ class CrossAdaptiveEnv(gym.Env):
         return self.get_state(), reward, done, {}
 
     def get_state(self):
-        return np.concatenate(self.source_features, self.target_features)
+        return np.concatenate((self.source_features, self.target_features))
 
     def reset(self):
         if self.mode == Mode.LIVE:
