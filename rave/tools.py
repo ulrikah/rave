@@ -106,11 +106,6 @@ def play_wav(wav_file: str):
 
 
 if __name__ == "__main__":
-    path = "rave/bounces/bandpass_render_20210208_14*.wav"
+    path = "rave/bounces/bandpass_*.wav"
     wav_paths = glob.glob(path)
-    wav_paths = [
-        "rave/bounces/bandpass_render_20210208_142956_708179_noise.wav",
-        # "rave/input_audio/noise.wav",
-        # "rave/input_audio/amen.wav"
-    ]
     plot_wavs_on_top_of_eachother(wav_paths, save_to="rave/plots/dry_wet.jpg")
