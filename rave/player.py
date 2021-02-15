@@ -9,8 +9,10 @@ class Player:
     def __init__(self):
         self.k = 0
         self.cs = ctcsound.Csound()
-        self.cs.setOption("--nodisplays")
         self.csd = None
+        self.debug = True
+        if not self.debug:
+            self.cs.setOption("--nodisplays")
 
     def render_csd(self, csd: str, exit=False):
         """
@@ -26,8 +28,9 @@ class Player:
 
     def start_halting(self, csd: str):
         """Compiles the CSD and starts the engine, but wait for render function to actually render a k"""
-        self.cs.createMessageBuffer(False)
-        self._has_message_buffer = True
+        if not self.debug:
+            self.cs.createMessageBuffer(False)
+            self._has_message_buffer = True
         self.csd = csd
         self.cs.compileCsdText(csd)
         self.cs.start()
@@ -57,9 +60,10 @@ class Player:
         return result
 
     def cleanup(self, exit=False):
-        if self._has_message_buffer:
-            self.cs.destroyMessageBuffer()
-            self._has_message_buffer = False
+        if not self.debug:
+            if self._has_message_buffer:
+                self.cs.destroyMessageBuffer()
+                self._has_message_buffer = False
         exit_code = self.cs.cleanup()
         self.cs.reset()
         if exit:
