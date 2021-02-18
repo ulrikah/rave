@@ -12,9 +12,11 @@ class Mediator:
         self.target_q = SimpleQueue()
 
         self.osc_server.register_handler(
-            "/rave/source/features", self.add_source_features)
+            "/rave/source/features", self.add_source_features
+        )
         self.osc_server.register_handler(
-            "/rave/target/features", self.add_target_features)
+            "/rave/target/features", self.add_target_features
+        )
         self.osc_server_thread = None
         if run:
             self.run()
@@ -29,7 +31,9 @@ class Mediator:
         """
         Pops an array of features off both queues and converts them to numpy arrays
         """
-        return np.array(self.get_source_features()), np.array(self.get_target_features())
+        return np.array(self.get_source_features()), np.array(
+            self.get_target_features()
+        )
 
     def get_source_features(self):
         if not self.source_q.empty():

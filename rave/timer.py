@@ -24,7 +24,8 @@ i1 3 6 266
 i1 2 3 276
 """
 
-t = timeit.timeit("""
+t = timeit.timeit(
+    """
 cs = ctcsound.Csound()
 cs.setOption(f"-o{FILENAME}")
 cs.setOption("-W")
@@ -38,7 +39,10 @@ while cs.performBuffer() == 0:
 cs.cleanup()
 cs.reset()
 os.remove(FILENAME)
-""", globals=globals(), number=NUMBER)
+""",
+    globals=globals(),
+    number=NUMBER,
+)
 
 
 print("")

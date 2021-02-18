@@ -12,12 +12,12 @@ import sys
 
 def k_to_sec(ksmps=64, sr=44100):
     """How many seconds are there in 1 k with sample rate sr?"""
-    return (ksmps / sr)
+    return ksmps / sr
 
 
 def k_per_sec(ksmps=64, sr=44100):
     """How many k are there in 1 second of sample rate sr?"""
-    return (sr / ksmps)
+    return sr / ksmps
 
 
 def get_duration(wav_file):
@@ -46,10 +46,9 @@ def plot_melspectrogram(S: np.ndarray, sr=44100):
     """
     fig, ax = plt.subplots()
     S_dB = librosa.power_to_db(S, ref=np.max)
-    img = librosa.display.specshow(
-        S_dB, x_axis='time', y_axis='mel', sr=sr, ax=ax)
-    fig.colorbar(img, ax=ax, format='%+2.0f dB')
-    ax.set(title='Mel-frequency spectrogram')
+    img = librosa.display.specshow(S_dB, x_axis="time", y_axis="mel", sr=sr, ax=ax)
+    fig.colorbar(img, ax=ax, format="%+2.0f dB")
+    ax.set(title="Mel-frequency spectrogram")
     plt.show()
 
 
@@ -58,13 +57,13 @@ def plot_mfcc(mfccs: np.ndarray, sr=44100):
     Plots the mel cepstral coefficients
     """
     fig, ax = plt.subplots()
-    img = librosa.display.specshow(mfccs, x_axis='time', ax=ax)
+    img = librosa.display.specshow(mfccs, x_axis="time", ax=ax)
     fig.colorbar(img, ax=ax)
-    ax.set(title='MFCC')
+    ax.set(title="MFCC")
     plt.show()
 
 
-def plot_1d(y: np.ndarray, title='RMS'):
+def plot_1d(y: np.ndarray, title="RMS"):
     """
     Plots 1D numpy arrays along
     """

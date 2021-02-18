@@ -56,7 +56,9 @@ class Player:
             # end of score
             if result == 2:
                 if loop == True:
-                    assert self.csd is not None, "Tried to restart without a reference to any CSD"
+                    assert (
+                        self.csd is not None
+                    ), "Tried to restart without a reference to any CSD"
                     self.k = 0
                     self.start_halting(self.csd)
             else:

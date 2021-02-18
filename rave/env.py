@@ -29,7 +29,7 @@ DEFAULT_CONFIG = {
     "metric": EuclideanDistance(),
     "mode": Mode.STATIC,
     "source": NOISE,
-    "target": AMEN
+    "target": AMEN,
 }
 
 
@@ -50,16 +50,16 @@ class CrossAdaptiveEnv(gym.Env):
 
         # an observation = 1 x audio frame from both source and target
         self.observation_space = gym.spaces.Box(
-            low=0.0, high=1.0, shape=(len(ANALYSIS_CHANNELS) * 2,))
+            low=0.0, high=1.0, shape=(len(ANALYSIS_CHANNELS) * 2,)
+        )
 
         # an action = a combination of effect parameters
         self.action_space = gym.spaces.Box(
-            low=0.0, high=1.0, shape=(len(self.effect.parameters),))
+            low=0.0, high=1.0, shape=(len(self.effect.parameters),)
+        )
 
-        self.source.apply_effect(
-            effect=self.effect, analyze=True)
-        self.target.apply_effect(
-            effect=None, analyze=True)
+        self.source.apply_effect(effect=self.effect, analyze=True)
+        self.target.apply_effect(effect=None, analyze=True)
 
         if self.mode == Mode.LIVE:
             self.mediator = Mediator()
@@ -71,7 +71,8 @@ class CrossAdaptiveEnv(gym.Env):
 
     def action_to_mapping(self, action: np.ndarray):
         assert len(action) == len(
-            self.effect.parameters), "Number of params doesn't match length of action"
+            self.effect.parameters
+        ), "Number of params doesn't match length of action"
         mapping = {}
         for i, p in enumerate(self.effect.parameters):
             fp = [p.mapping.min_value, p.mapping.max_value]
@@ -96,10 +97,8 @@ class CrossAdaptiveEnv(gym.Env):
         if self.mode == Mode.LIVE:
             source_features, target_features = self.mediator.get_features()
         else:
-            source_features = self.source.player.get_channels(
-                ANALYSIS_CHANNELS)
-            target_features = self.target.player.get_channels(
-                ANALYSIS_CHANNELS)
+            source_features = self.source.player.get_channels(ANALYSIS_CHANNELS)
+            target_features = self.target.player.get_channels(ANALYSIS_CHANNELS)
 
         self.source_features = source_features
         self.target_features = target_features
@@ -141,7 +140,10 @@ class CrossAdaptiveEnv(gym.Env):
         """
         done = False
         source = Sound(
-            self.source_input, output_file_path=f"{self.effect.name}_render_{timestamp()}_{self.source_input}", loop=False)
+            self.source_input,
+            output_file_path=f"{self.effect.name}_render_{timestamp()}_{self.source_input}",
+            loop=False,
+        )
         source.apply_effect(effect=self.effect)
         for action in self.actions:
             mapping = self.action_to_mapping(action)

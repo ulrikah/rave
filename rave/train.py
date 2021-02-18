@@ -30,7 +30,7 @@ def train():
         #     # "training_iteration": 10
         #     # "episode_reward_mean": 0.8,
         # },
-        local_dir=RAY_RESULTS_DIR
+        local_dir=RAY_RESULTS_DIR,
     )
 
 

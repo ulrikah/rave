@@ -33,8 +33,7 @@ class Sound:
 
     def __init__(self, filename, output_file_path=None, loop=True):
         rel_path = os.path.join(AUDIO_INPUT_FOLDER, filename)
-        assert os.path.isfile(
-            rel_path), f"Couldn't find {rel_path} from {os.getcwd()}"
+        assert os.path.isfile(rel_path), f"Couldn't find {rel_path} from {os.getcwd()}"
         self.filename = filename
         self.input_file_path = rel_path
         if output_file_path is None:
@@ -55,11 +54,15 @@ class Sound:
 
     @staticmethod
     def compile_effect(effect: Effect):
-        return TemplateHandler(f"{effect.name}.csd.jinja2", template_dir=EFFECTS_TEMPLATE_DIR).compile()
+        return TemplateHandler(
+            f"{effect.name}.csd.jinja2", template_dir=EFFECTS_TEMPLATE_DIR
+        ).compile()
 
     @staticmethod
     def compile_analyzer(osc_route: str = "/rave/target/features"):
-        return TemplateHandler("analyzer.csd.jinja2", template_dir=EFFECTS_TEMPLATE_DIR).compile(osc_route=osc_route)
+        return TemplateHandler(
+            "analyzer.csd.jinja2", template_dir=EFFECTS_TEMPLATE_DIR
+        ).compile(osc_route=osc_route)
 
     def apply_effect(self, effect: Effect = None, analyze=True, osc_route=None):
         """
@@ -69,13 +72,10 @@ class Sound:
             effect: which Effect to apply, potentially blank for target sound
             analyze: whether or not the sound should be analyzed
         """
-        effect_csd = self.compile_effect(
-            effect) if effect is not None else None
-        analyzer_csd = self.compile_analyzer(
-            osc_route=osc_route) if analyze else ""
+        effect_csd = self.compile_effect(effect) if effect is not None else None
+        analyzer_csd = self.compile_analyzer(osc_route=osc_route) if analyze else ""
 
-        base = TemplateHandler(
-            "base.csd.jinja2", template_dir=EFFECTS_TEMPLATE_DIR)
+        base = TemplateHandler("base.csd.jinja2", template_dir=EFFECTS_TEMPLATE_DIR)
         channels = effect.get_csd_channels() if effect is not None else []
         self.csd = base.compile(
             input=self.input_file_path,
@@ -86,11 +86,12 @@ class Sound:
             flags="-W",
             effect=effect_csd,
             analyzer=analyzer_csd,
-            duration=get_duration(os.path.join(
-                AUDIO_INPUT_FOLDER, AUDIO_INPUT_FILE))
+            duration=get_duration(os.path.join(AUDIO_INPUT_FOLDER, AUDIO_INPUT_FILE)),
         )
         save_to_path = os.path.join(
-            "/Users/ulrikah/fag/thesis/rave/rave/csd", f"{os.path.splitext(self.filename)[0]}_{timestamp()}.csd")
+            "/Users/ulrikah/fag/thesis/rave/rave/csd",
+            f"{os.path.splitext(self.filename)[0]}_{timestamp()}.csd",
+        )
         base.save_to_file(save_to_path)
         return self.csd
 
@@ -125,7 +126,8 @@ class Sound:
             the path to the bounce
         """
         assert not self.output.startswith(
-            DAC), "Can't bounce a sound that is sent to DAC"
+            DAC
+        ), "Can't bounce a sound that is sent to DAC"
         if self.player:
             self.player.cleanup()
             del self.player
@@ -149,4 +151,5 @@ if __name__ == "__main__":
         dry_chans = dry.player.get_channels(ANALYSIS_CHANNELS)
         wet_chans = wet.player.get_channels(ANALYSIS_CHANNELS)
         assert not np.array_equal(
-            dry_chans, wet_chans), "Dry and wet should not be equal"
+            dry_chans, wet_chans
+        ), "Dry and wet should not be equal"
