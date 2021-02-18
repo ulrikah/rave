@@ -3,10 +3,10 @@ import wave
 
 import numpy as np
 
-from effect import Effect
-from template_handler import TemplateHandler
-from tools import timestamp, get_duration, k_to_sec
-from player import Player
+from rave.effect import Effect
+from rave.template_handler import TemplateHandler
+from rave.tools import timestamp, get_duration, k_to_sec
+from rave.player import Player
 
 # TODO: define these contants somewhere more globally accessible
 AMEN = "amen_trim.wav"

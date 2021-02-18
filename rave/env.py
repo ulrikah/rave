@@ -7,11 +7,11 @@ import os
 import sys
 from enum import Enum
 
-from metrics import EuclideanDistance, AbstractMetric
-from effect import Effect
-from sound import Sound
-from mediator import Mediator
-from tools import timestamp, play_wav
+from rave.metrics import EuclideanDistance, AbstractMetric
+from rave.effect import Effect
+from rave.sound import Sound
+from rave.mediator import Mediator
+from rave.tools import timestamp, play_wav
 
 AMEN = "amen_trim.wav"
 NOISE = "noise.wav"
@@ -24,7 +24,7 @@ class Mode(Enum):
     STATIC = "static"
 
 
-DEFAULT_CONFIG = {
+CROSS_ADAPTIVE_DEFAULT_CONFIG = {
     "effect": Effect("bandpass"),
     "metric": EuclideanDistance(),
     "mode": Mode.STATIC,
@@ -38,7 +38,7 @@ class CrossAdaptiveEnv(gym.Env):
     Environment for learning crossadaptive processing with reinforcement learning
     """
 
-    def __init__(self, config=DEFAULT_CONFIG):
+    def __init__(self, config=CROSS_ADAPTIVE_DEFAULT_CONFIG):
         self.source_input = config["source"]
         self.target_input = config["target"]
         self.effect = config["effect"]

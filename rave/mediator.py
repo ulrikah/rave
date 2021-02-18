@@ -1,8 +1,9 @@
 import numpy as np
 import time
 from queue import SimpleQueue
-from osc_server import OscServer
 from threading import Thread
+
+from rave.osc_server import OscServer
 
 
 class Mediator:

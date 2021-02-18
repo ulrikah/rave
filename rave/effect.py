@@ -7,9 +7,9 @@ from collections import namedtuple
 
 import numpy as np
 
-from template_handler import TemplateHandler
-from player import Player
-from tools import timestamp, get_duration
+from rave.template_handler import TemplateHandler
+from rave.player import Player
+from rave.tools import timestamp, get_duration
 
 Channel = namedtuple("Channel", ["name", "value"])
 
@@ -110,7 +110,4 @@ def main():
 
 
 if __name__ == "__main__":
-    effect = Effect("bandpass")
-    channels = effect.get_csd_channels()
-    print(channels)
-    print(effect.random_numerical_mapping())
+    main()

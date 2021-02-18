@@ -3,20 +3,21 @@ import ray
 from ray.rllib.agents import ppo
 from ray.rllib.agents import sac
 from ray.tune.logger import pretty_print
-import env
-from effect import Effect
-from metrics import EuclideanDistance, NormalizedEuclidean
+
+from rave.env import CrossAdaptiveEnv, CROSS_ADAPTIVE_DEFAULT_CONFIG
+from rave.effect import Effect
+from rave.metrics import EuclideanDistance, NormalizedEuclidean
 
 RAY_RESULTS_DIR = "rave/ray_results"
 assert os.path.isdir(RAY_RESULTS_DIR)
 
 
 def train():
-    env_config = env.DEFAULT_CONFIG
+    env_config = CROSS_ADAPTIVE_DEFAULT_CONFIG
     env_config["metric"] = NormalizedEuclidean()
 
     config = sac.DEFAULT_CONFIG.copy()
-    config["env"] = env.CrossAdaptiveEnv
+    config["env"] = CrossAdaptiveEnv
     config["env_config"] = env_config
     config["num_workers"] = 0
     config["framework"] = "torch"
