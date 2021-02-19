@@ -58,8 +58,8 @@ class CrossAdaptiveEnv(gym.Env):
             low=0.0, high=1.0, shape=(len(self.effect.parameters),)
         )
 
-        self.source.apply_effect(effect=self.effect, analyze=True)
-        self.target.apply_effect(effect=None, analyze=True)
+        self.source.apply_effect(effect=self.effect, analyse=True)
+        self.target.apply_effect(effect=None, analyse=True)
 
         if self.mode == Mode.LIVE:
             self.mediator = Mediator()

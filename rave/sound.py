@@ -59,21 +59,21 @@ class Sound:
         ).compile()
 
     @staticmethod
-    def compile_analyzer(osc_route: str = "/rave/target/features"):
+    def compile_analyser(osc_route: str = "/rave/target/features"):
         return TemplateHandler(
-            "analyzer.csd.jinja2", template_dir=EFFECTS_TEMPLATE_DIR
+            "analyser.csd.jinja2", template_dir=EFFECTS_TEMPLATE_DIR
         ).compile(osc_route=osc_route)
 
-    def apply_effect(self, effect: Effect = None, analyze=True, osc_route=None):
+    def apply_effect(self, effect: Effect = None, analyse=True, osc_route=None):
         """
         Applies an effect to the sound object
 
         Args:
             effect: which Effect to apply, potentially blank for target sound
-            analyze: whether or not the sound should be analyzed
+            analyse: whether or not the sound should be analysed
         """
         effect_csd = self.compile_effect(effect) if effect is not None else None
-        analyzer_csd = self.compile_analyzer(osc_route=osc_route) if analyze else ""
+        analyser_csd = self.compile_analyser(osc_route=osc_route) if analyse else ""
 
         base = TemplateHandler("base.csd.jinja2", template_dir=EFFECTS_TEMPLATE_DIR)
         channels = effect.get_csd_channels() if effect is not None else []
@@ -85,7 +85,7 @@ class Sound:
             ksmps=KSMPS,
             flags="-W",
             effect=effect_csd,
-            analyzer=analyzer_csd,
+            analyser=analyser_csd,
             duration=get_duration(os.path.join(AUDIO_INPUT_FOLDER, AUDIO_INPUT_FILE)),
         )
         save_to_path = os.path.join(
