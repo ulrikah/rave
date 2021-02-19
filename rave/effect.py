@@ -78,7 +78,7 @@ def main():
 
     input_file_path = os.path.join(INPUT_AUDIO, sound_source)
 
-    player = Player()
+    player = Player(debug=False)
     live_mode = False
     for _ in range(4):
         output_file_path = f"rave/bounces/{effect.name}_{timestamp()}.wav"
@@ -97,8 +97,8 @@ def main():
         csd = base.compile(
             sample_rate=44100,
             ksmps=64,
-            input=input_file_path,
-            output="dac",
+            input=f"-i{input_file_path}",
+            output="-odac",
             flags="-W",
             effect=fx,
             channels=channels,

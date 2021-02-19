@@ -6,11 +6,11 @@ import numpy as np
 
 
 class Player:
-    def __init__(self):
+    def __init__(self, debug=False):
         self.k = 0
         self.cs = ctcsound.Csound()
         self.csd = None
-        self.debug = False
+        self.debug = debug
         if not self.debug:
             self.cs.setOption("--nodisplays")
 
@@ -18,6 +18,8 @@ class Player:
         """
         Renders a CSD string and optionally exits afterwards
         """
+        if not self.debug:
+            self._open_message_buffer()
         result = self.cs.compileCsdText(csd)
         result = self.cs.start()
         while True:
@@ -26,11 +28,14 @@ class Player:
                 break
         self.cleanup(exit)
 
+    def _open_message_buffer(self):
+        self.cs.createMessageBuffer(False)
+        self._has_message_buffer = True
+
     def start_halting(self, csd: str):
         """Compiles the CSD and starts the engine, but wait for render function to actually render a k"""
         if not self.debug:
-            self.cs.createMessageBuffer(False)
-            self._has_message_buffer = True
+            self._open_message_buffer()
         self.csd = csd
         self.cs.compileCsdText(csd)
         self.cs.start()

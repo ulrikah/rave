@@ -13,9 +13,9 @@ from rave.player import Player
 AMEN = "amen_trim.wav"
 NOISE = "noise.wav"
 
-LIVE = "adc"
+LIVE = "-iadc"
 NO_SOUND = "--nosound"
-DAC = "dac"
+DAC = "-odac"
 AUDIO_INPUT_FOLDER = "/Users/ulrikah/fag/thesis/rave/rave/input_audio/"
 AUDIO_OUTPUT_FOLDER = "/Users/ulrikah/fag/thesis/rave/rave/bounces/"
 AUDIO_INPUT_FILE = AMEN
@@ -38,8 +38,7 @@ class Sound:
         self.filename = filename
         self.input_file_path = rel_path
         if output_file_path is None:
-            # TODO: don't use -o dac at all when --nosound flag is set
-            self.output = f"{DAC} {NO_SOUND}"
+            self.output = NO_SOUND
         else:
             self.output = os.path.join(AUDIO_OUTPUT_FOLDER, output_file_path)
         self.get_properties()
@@ -73,7 +72,7 @@ class Sound:
         channels = effect.get_csd_channels() if effect is not None else []
 
         self.csd = base.compile(
-            input=self.input_file_path,
+            input=f"-i{self.input_file_path},
             output=self.output,
             channels=channels,
             sample_rate=SAMPLE_RATE,
