@@ -72,6 +72,7 @@ class Sound:
 
         base = TemplateHandler("base.csd.jinja2", template_dir=EFFECTS_TEMPLATE_DIR)
         channels = effect.get_csd_channels() if effect is not None else []
+
         self.csd = base.compile(
             input=self.input_file_path,
             output=self.output,
@@ -81,8 +82,7 @@ class Sound:
             flags="-W",
             effect=effect_csd,
             analyser=analyser.analyser_csd if analyser is not None else "",
-            # TODO: this is not dependent on the actual input file as of now
-            duration=get_duration(os.path.join(AUDIO_INPUT_FOLDER, AUDIO_INPUT_FILE)),
+            duration=self.n_sec,
         )
         save_to_path = os.path.join(
             "/Users/ulrikah/fag/thesis/rave/rave/csd",

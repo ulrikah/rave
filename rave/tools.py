@@ -25,7 +25,6 @@ def get_duration(wav_file):
     Returns the duration of a WAV file in seconds
 
     NB! Requires sox to be installed
-    TODO: find better way of determining duration
     """
     dur_bytes = subprocess.check_output(["soxi", "-D", wav_file])
     return float(dur_bytes.decode("utf-8").strip())
