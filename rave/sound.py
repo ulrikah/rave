@@ -41,7 +41,7 @@ class Sound:
             self.output = f"{DAC} {NO_SOUND}"
         else:
             self.output = os.path.join(AUDIO_OUTPUT_FOLDER, output_file_path)
-        self.get_properties()
+        # self.get_properties()
         self.player = None
         self.loop = loop
         self.csd = None

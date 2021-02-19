@@ -10,10 +10,15 @@ ANALYSER_BASE = "base_analyser.csd.jinja2"
 
 class Analyser:
     def __init__(
-        self, feature_extractors: [], audio_input="aOut", output_file_path=None
+        self,
+        feature_extractors: [],
+        osc_route=None,
+        audio_to_analyse="aOut",
+        output_file_path=None,
     ):
         self.feature_extractors = []
         self.global_variables = []
+        self.channels = []
 
         for feature in feature_extractors:
             feature_template = f"{feature}.csd.jinja2"
@@ -23,6 +28,7 @@ class Analyser:
                 if not os.path.isfile(path):
                     raise ValueError(f"Couldn't resolve the path to {path}")
             extractor_meta = self._parse_extractor_from_json(json_path)
+            self.channels.extend(extractor_meta.output_channels)
             feature_extractor = TemplateHandler(
                 feature_template, template_dir=ANALYSER_DIR
             ).compile(input=extractor_meta.input)
@@ -43,11 +49,12 @@ class Analyser:
                 )
 
         analyser = TemplateHandler(ANALYSER_BASE, ANALYSER_DIR)
-
         self.analyser_csd = analyser.compile(
-            input=audio_input,
+            input=audio_to_analyse,
             feature_extractors=self.feature_extractors,
             global_variables=self.global_variables,
+            osc_route=osc_route,
+            osc_channels=self.channels,
         )
         if output_file_path is not None:
             analyser.save_to_file(output_file_path)

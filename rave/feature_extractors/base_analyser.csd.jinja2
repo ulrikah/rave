@@ -1,3 +1,8 @@
+{% if osc_route %}    
+    #define IP_ADDRESS	# "127.0.0.1" #
+    #define PORT 		# 4321 #
+{% endif %}
+
     ; ***************
     ; START globals
 
@@ -14,6 +19,19 @@
 ; define the input audio to use in analysis 
 aAnalyserInput = {{input}}
 
+{% if osc_route %}
+
+; ***************
+; metro 
+; corresponding to a trigger every 2k
+
+kwhen           init 0
+ki              init 0
+ki              += 1
+km              trigger ki%2, 1, 1
+
+{% endif %}
+
 {% for extractor in feature_extractors %}
 
     ;***** START {{extractor.name}} *****
@@ -23,3 +41,10 @@ aAnalyserInput = {{input}}
     ;***** END {{extractor.name}} *****
 
 {% endfor %}
+
+{% if osc_route %}
+
+OSCsend kwhen, $IP_ADDRESS, $PORT, "{{ osc_route }}", "{{"f" * osc_channels|length}}", {{ osc_channels|join(", ") }}
+kwhen += km
+
+{% endif %}
