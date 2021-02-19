@@ -72,8 +72,8 @@ class Sound:
         channels = effect.get_csd_channels() if effect is not None else []
 
         self.csd = base.compile(
-            input=f"-i{self.input_file_path},
-            output=self.output,
+            input=f"-i{self.input_file_path}",
+            output=f"-o{self.output}",
             channels=channels,
             sample_rate=SAMPLE_RATE,
             ksmps=KSMPS,
@@ -103,7 +103,7 @@ class Sound:
             raise Exception("render is called prior to prepare_to_render")
 
         if self.player is None:
-            self.player = Player()
+            self.player = Player(debug=True)
             self.player.start_halting(self.csd)
 
         if mapping is not None:
