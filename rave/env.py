@@ -9,6 +9,7 @@ from enum import Enum
 
 from rave.metrics import EuclideanDistance, AbstractMetric
 from rave.effect import Effect
+from rave.analyser import Analyser
 from rave.sound import Sound
 from rave.mediator import Mediator
 from rave.tools import timestamp, play_wav
@@ -16,7 +17,6 @@ from rave.tools import timestamp, play_wav
 AMEN = "amen_trim.wav"
 NOISE = "noise.wav"
 SINE = "sine220.wav"
-ANALYSIS_CHANNELS = ["rms", "pitch_n", "centroid", "flux"]
 
 
 class Mode(Enum):
@@ -30,6 +30,7 @@ CROSS_ADAPTIVE_DEFAULT_CONFIG = {
     "mode": Mode.STATIC,
     "source": NOISE,
     "target": AMEN,
+    "feature_extractors": ["rms", "pitch", "spectral"],
 }
 
 
@@ -44,13 +45,21 @@ class CrossAdaptiveEnv(gym.Env):
         self.effect = config["effect"]
         self.metric = config["metric"]
         self.mode = config["mode"]
+        self.feature_extractors = config["feature_extractors"]
+
+        if not len(self.feature_extractors) > 0:
+            raise ValueError(
+                "The environment doesn't work without any feature extractors"
+            )
+        analyser = Analyser(self.feature_extractors)
+        self.analysis_features = analyser.analysis_features
 
         self.source = Sound(self.source_input)
         self.target = Sound(self.target_input)
 
-        # an observation = 1 x audio frame from both source and target
+        # an observation = 1 x audio frame from both source and target => 2 x length of features
         self.observation_space = gym.spaces.Box(
-            low=0.0, high=1.0, shape=(len(ANALYSIS_CHANNELS) * 2,)
+            low=0.0, high=1.0, shape=(len(self.analysis_features) * 2,)
         )
 
         # an action = a combination of effect parameters
@@ -58,16 +67,17 @@ class CrossAdaptiveEnv(gym.Env):
             low=0.0, high=1.0, shape=(len(self.effect.parameters),)
         )
 
-        self.source.apply_effect(effect=self.effect, analyse=True)
-        self.target.apply_effect(effect=None, analyse=True)
+        self.source.apply_effect(effect=self.effect, analyser=analyser)
+
+        self.target.apply_effect(effect=None, analyser=analyser)
 
         if self.mode == Mode.LIVE:
             self.mediator = Mediator()
 
         self.actions = []
         self.rewards = []
-        self.source_features = np.zeros(shape=len(ANALYSIS_CHANNELS))
-        self.target_features = np.zeros(shape=len(ANALYSIS_CHANNELS))
+        self.source_features = np.zeros(shape=len(self.analysis_features))
+        self.target_features = np.zeros(shape=len(self.analysis_features))
 
     def action_to_mapping(self, action: np.ndarray):
         assert len(action) == len(
@@ -97,8 +107,8 @@ class CrossAdaptiveEnv(gym.Env):
         if self.mode == Mode.LIVE:
             source_features, target_features = self.mediator.get_features()
         else:
-            source_features = self.source.player.get_channels(ANALYSIS_CHANNELS)
-            target_features = self.target.player.get_channels(ANALYSIS_CHANNELS)
+            source_features = self.source.player.get_channels(self.analysis_features)
+            target_features = self.target.player.get_channels(self.analysis_features)
 
         self.source_features = source_features
         self.target_features = target_features
@@ -125,6 +135,10 @@ class CrossAdaptiveEnv(gym.Env):
         assert source.shape == target.shape
         reward = self.metric.calculate_reward(source, target)
         self.rewards.append(reward)
+        if source.mean() > 0.0 or target.mean() > 0.0:
+            import pdb
+
+            pdb.set_trace()
         return reward
 
     def close(self):

@@ -21,9 +21,9 @@ instr	1
 {% if effect is not none %}
     {{ effect }}
 {% else %}
+    {# analyser uses aOut as input #}
     aOut = aIn
 {% endif %}
-    // analyser uses aOut as input
     {{ analyser }}
     out aOut
 endin

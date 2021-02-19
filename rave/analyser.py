@@ -4,11 +4,17 @@ import json
 from types import SimpleNamespace
 
 
-ANALYSER_DIR = "rave/feature_extractors"
+ANALYSER_DIR = "/Users/ulrikah/fag/thesis/rave/rave/feature_extractors"
 ANALYSER_BASE = "base_analyser.csd.jinja2"
 
 
 class Analyser:
+    """
+    Args:
+
+    feature_extractors: a list of names of which feature extractors to use. Must correspond to the extractors in rave/feature_extractors
+    """
+
     def __init__(
         self,
         feature_extractors: [],
@@ -18,25 +24,27 @@ class Analyser:
     ):
         self.feature_extractors = []
         self.global_variables = []
-        self.channels = []
+        self.analysis_features = []
 
         for feature in feature_extractors:
-            feature_template = f"{feature}.csd.jinja2"
-            template_path = os.path.join(ANALYSER_DIR, feature_template)
-            json_path = os.path.join(ANALYSER_DIR, f"{feature}.json")
-            for path in [template_path, json_path]:
+            feature_extractor_template = f"{feature}.csd.jinja2"
+            template_path = os.path.join(ANALYSER_DIR, feature_extractor_template)
+            meta_info_path = os.path.join(ANALYSER_DIR, f"{feature}.json")
+            for path in [template_path, meta_info_path]:
                 if not os.path.isfile(path):
                     raise ValueError(f"Couldn't resolve the path to {path}")
-            extractor_meta = self._parse_extractor_from_json(json_path)
-            self.channels.extend(extractor_meta.output_channels)
+            feature_extractor_meta = self._parse_meta_feature_extractor_from_json(
+                meta_info_path
+            )
+            self.analysis_features.extend(feature_extractor_meta.output_channels)
             feature_extractor = TemplateHandler(
-                feature_template, template_dir=ANALYSER_DIR
-            ).compile(input=extractor_meta.input)
+                feature_extractor_template, template_dir=ANALYSER_DIR
+            ).compile(input=feature_extractor_meta.input)
             self.feature_extractors.append(
                 {
                     "name": feature,
                     "csd": feature_extractor,
-                    "channels": extractor_meta.output_channels,
+                    "channels": feature_extractor_meta.output_channels,
                 }
             )
 
@@ -54,12 +62,12 @@ class Analyser:
             feature_extractors=self.feature_extractors,
             global_variables=self.global_variables,
             osc_route=osc_route,
-            osc_channels=self.channels,
+            osc_channels=self.analysis_features,
         )
         if output_file_path is not None:
             analyser.save_to_file(output_file_path)
 
-    def _parse_extractor_from_json(self, feature_extractor_json_path: str):
+    def _parse_meta_feature_extractor_from_json(self, feature_extractor_json_path: str):
         try:
             with open(feature_extractor_json_path, "r") as file:
                 data = file.read()
@@ -67,5 +75,5 @@ class Analyser:
 
         except json.decoder.JSONDecodeError as error:
             raise error(
-                f"Unable to parse feature extractor {feature_extractor_json_path}"
+                f"Unable to parse meta information from feature extractor {feature_extractor_json_path}"
             )

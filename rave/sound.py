@@ -4,6 +4,7 @@ import wave
 import numpy as np
 
 from rave.effect import Effect
+from rave.analyser import Analyser
 from rave.template_handler import TemplateHandler
 from rave.tools import timestamp, get_duration, k_to_sec
 from rave.player import Player
@@ -41,7 +42,7 @@ class Sound:
             self.output = f"{DAC} {NO_SOUND}"
         else:
             self.output = os.path.join(AUDIO_OUTPUT_FOLDER, output_file_path)
-        # self.get_properties()
+        self.get_properties()
         self.player = None
         self.loop = loop
         self.csd = None
@@ -58,22 +59,16 @@ class Sound:
             f"{effect.name}.csd.jinja2", template_dir=EFFECTS_TEMPLATE_DIR
         ).compile()
 
-    @staticmethod
-    def compile_analyser(osc_route: str = "/rave/target/features"):
-        return TemplateHandler(
-            "analyser.csd.jinja2", template_dir=EFFECTS_TEMPLATE_DIR
-        ).compile(osc_route=osc_route)
-
-    def apply_effect(self, effect: Effect = None, analyse=True, osc_route=None):
+    # TODO: find a better name for this function as it doesn't require an effect
+    def apply_effect(self, effect: Effect = None, analyser: Analyser = None):
         """
         Applies an effect to the sound object
 
         Args:
             effect: which Effect to apply, potentially blank for target sound
-            analyse: whether or not the sound should be analysed
+            analyser: an Analyser object
         """
         effect_csd = self.compile_effect(effect) if effect is not None else None
-        analyser_csd = self.compile_analyser(osc_route=osc_route) if analyse else ""
 
         base = TemplateHandler("base.csd.jinja2", template_dir=EFFECTS_TEMPLATE_DIR)
         channels = effect.get_csd_channels() if effect is not None else []
@@ -85,7 +80,8 @@ class Sound:
             ksmps=KSMPS,
             flags="-W",
             effect=effect_csd,
-            analyser=analyser_csd,
+            analyser=analyser.analyser_csd,
+            # TODO: this is not dependent on the actual input file as of now
             duration=get_duration(os.path.join(AUDIO_INPUT_FOLDER, AUDIO_INPUT_FILE)),
         )
         save_to_path = os.path.join(
