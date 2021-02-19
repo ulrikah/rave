@@ -135,10 +135,6 @@ class CrossAdaptiveEnv(gym.Env):
         assert source.shape == target.shape
         reward = self.metric.calculate_reward(source, target)
         self.rewards.append(reward)
-        if source.mean() > 0.0 or target.mean() > 0.0:
-            import pdb
-
-            pdb.set_trace()
         return reward
 
     def close(self):

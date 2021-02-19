@@ -3,11 +3,11 @@
 
     chnset 25, "pitchFilterSize"
     chnset 150, "pitch_low"
-    chnset 800, "pitch_high
+    chnset 800, "pitch_high"
 
 ; ***************
 ; pitch tracking
-
+    
     kpitch_low      chnget "pitch_low"
     kpitch_high     chnget "pitch_high"
     kpitch_low      init 100
@@ -24,7 +24,7 @@
     kcps            limit kcps, kpitch_low, kpitch_high
     kcps            tonek kcps, 50
 
-    kcps		samphold kcps, kgate2
+    kcps		    samphold kcps, kgate2
     ; ksemitone       = limit:k((log2(kcps/440)*12)+69, 0, 127)
 
 

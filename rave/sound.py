@@ -80,7 +80,7 @@ class Sound:
             ksmps=KSMPS,
             flags="-W",
             effect=effect_csd,
-            analyser=analyser.analyser_csd,
+            analyser=analyser.analyser_csd if analyser is not None else "",
             # TODO: this is not dependent on the actual input file as of now
             duration=get_duration(os.path.join(AUDIO_INPUT_FOLDER, AUDIO_INPUT_FILE)),
         )

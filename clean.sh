@@ -7,7 +7,7 @@ for path in {"rave/bounces/*.wav","rave/plots/*.{jpg,png}","rave/csd/*.csd"}; do
 done
 
 function delete_logs() {
-    echo "Removing logs"
+    echo "🗑  removing ray logs"
     rm -rf rave/ray_results/*
 }
 
@@ -15,7 +15,7 @@ function delete_logs() {
 if [ "$1" == "--force" -o "$1" == "-f" ]; then
         delete_logs;
 else
-        read -p "This will delete all the ray logs. Are you sure? (y/n) " -n 1;
+        read -p "Do you want to delete all the ray logs aswell? (y/n) " -n 1;
         echo "";
         if [[ $REPLY =~ ^[Yy]$ ]]; then
                 delete_logs;
