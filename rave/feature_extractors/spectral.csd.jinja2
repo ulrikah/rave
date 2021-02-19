@@ -1,0 +1,99 @@
+; ***************
+; spectral analysis
+
+    iwtype 			= 1
+    fsin 			pvsanal	{{input}}, gifftsize, gifftsize/2, gifftsize, iwtype
+    kflag   		pvsftw	fsin,gifna,gifnf          	; export  amps  and freqs to table,
+        
+    kupdateRate		= 200
+    kmetro			metro kupdateRate
+    kdoflag			init 0
+    kdoflag			= (kdoflag + kmetro);*kgate
+
+    ; copy pvs data from table to array
+    ; analyse spectral features
+    kArrA[]  		init    giFftTabSize
+    kArrAprev[]  		init    giFftTabSize
+    kArrAnorm[]  		init    giFftTabSize
+    kArrF[]  		init    giFftTabSize
+    kArrCorr[]  		init    giFftTabSize
+    kflatness		init 0
+
+if (kdoflag > 0) && (kflag > 0) then
+
+    kArrAprev[]		= kArrA
+                    copyf2array kArrA, gifna
+                    copyf2array kArrF, gifnf	
+    ksumAmp			sumarray kArrA
+    kmaxAmp			maxarray kArrA
+    ksumAmp         = (ksumAmp == 0 ? 1 : ksumAmp)
+    kArrAnorm       = kArrA/ksumAmp
+    kcentroid       pvscent fsin
+    kArrCorr		= kArrA*kArrAprev
+    kspread		    = sumarray(((kArrF+(kcentroid*-1))^2)*kArrAnorm)^0.5
+    kskewness	    divz sumarray(((kArrF+(kcentroid*-1))^3)*kArrAnorm), kspread^3, 1
+    kurtosis	    divz sumarray(((kArrF+(kcentroid*-1))^4)*kArrAnorm), kspread^4, 1	
+    kcrest			divz kmaxAmp, ksumAmp/giFftTabSize, 1  
+    kArrAlog[]      = kArrA
+    kArrAlog[0]     = 1
+    kArrAlog[1]     = 0
+    klogmin         minarray kArrAlog
+    while klogmin == 0 do
+        klogmin,klogndx minarray kArrAlog
+        kArrAlog[klogndx] = 1
+    od
+    kflatness		divz exp(sumarray(log(kArrAlog))/giFftTabSize),  (ksumAmp/giFftTabSize), 0
+    kflux           = 1-(divz(sumarray(kArrCorr),(sqrt(sumarray(kArrA^2))*sqrt(sumarray(kArrAprev^2))),0))
+    kdoflag 		= 0
+
+
+; ** filter hack to keep spectral signals at the value analysed while sound level above noise floor
+    kcentroid		samphold kcentroid, kgate
+    kcentroid2		samphold kcentroid, kgate2
+    kcentroid       = (kgate2 > 0 ? kcentroid : kcentroid2-((kcentroid-kcentroid2)*((1-klowscaler)*0.25)))
+    kspread		    samphold kspread, kgate
+    kspread2		samphold kspread, kgate2
+    kspread         = (kgate2 > 0 ? kspread : kspread2-((kspread-kspread2)*((1-klowscaler)*0.25)))
+    kskewness		samphold kskewness, kgate
+    kskewness2		samphold kskewness, kgate2
+    kskewness       = (kgate2 > 0 ? kskewness : kskewness2-((kskewness-kskewness2)*((1-klowscaler)*0.25)))
+    kurtosis		samphold kurtosis, kgate
+    kurtosis2		samphold kurtosis, kgate2
+    kurtosis        = (kgate2 > 0 ? kurtosis : kurtosis2-((kurtosis-kurtosis2)*((1-klowscaler)*0.25)))
+    kflatness		samphold kflatness, kgate
+    kflatness2		samphold kflatness, kgate2
+    kflatness       = (kgate2 > 0 ? kflatness : kflatness2-((kflatness-kflatness2)*((1-klowscaler)*0.25)))
+    kcrest		    samphold kcrest, kgate
+    kcrest2		    samphold kcrest, kgate2
+    kcrest          = (kgate2 > 0 ? kcrest : kcrest2-((kcrest-kcrest2)*((1-klowscaler)*0.25)))
+    kflux		    samphold kflux, kgate
+    kflux2		    samphold kflux, kgate2
+    kflux           = (kgate2 > 0 ? kflux : kflux2-((kflux-kflux2)*((1-klowscaler)*0.25)))
+
+endif
+
+
+
+; post filtering of spectral tracks
+    kcentroidf              tonek kcentroid, 20
+    kfluxf                  tonek kflux, 20
+
+; ***************
+; normalization
+    kpitch_n        = limit(divz(kcps-kpitch_low, kpitch_high-kpitch_low, 1), 0, 1)    ; normalized and offset
+    kcentroid_n     = kcentroidf / (sr*0.15)
+    kflux_n         = kfluxf * 4
+    imfccscale      = 1/200
+
+
+; ***************
+; limiter to (0, 1) range
+    krms            limit krms, 0, 1
+    kcentroid_l         limit kcentroid_n, 0, 1
+    kflux_l         limit kflux_n, 0, 1
+    
+; ***************
+; return features
+
+chnset kcentroid_l, "centroid"
+chnset kflux_l, "flux"

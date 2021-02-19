@@ -1,0 +1,10 @@
+; ***************
+; amplitude tracking
+    krms    rms {{input}}   ; simple level measure 
+    krms    = krms*2
+    krms    limit krms, 0, 1
+
+; ***************
+; return features
+
+chnset krms, "rms"

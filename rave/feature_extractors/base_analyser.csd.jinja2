@@ -1,0 +1,25 @@
+    ; ***************
+    ; START globals
+
+{% for global in global_variables %}
+
+{{ global }}
+
+{% endfor %}
+
+    ; ***************
+    ; END globals
+
+; ***************
+; define the input audio to use in analysis 
+aAnalyserInput = {{input}}
+
+{% for extractor in feature_extractors %}
+
+    ;***** START {{extractor.name}} *****
+
+{{ extractor.csd }}
+
+    ;***** END {{extractor.name}} *****
+
+{% endfor %}

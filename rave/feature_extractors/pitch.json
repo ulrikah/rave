@@ -1,0 +1,4 @@
+{
+    "input": "aAnalyserInput",
+    "output_channels": ["pitch"]
+}
