@@ -67,9 +67,9 @@ class CrossAdaptiveEnv(gym.Env):
             low=0.0, high=1.0, shape=(len(self.effect.parameters),)
         )
 
-        self.source.apply_effect(effect=self.effect, analyser=analyser)
+        self.source.prepare_to_render(effect=self.effect, analyser=analyser)
 
-        self.target.apply_effect(effect=None, analyser=analyser)
+        self.target.prepare_to_render(effect=None, analyser=analyser)
 
         if self.mode == Mode.LIVE:
             self.mediator = Mediator()
@@ -154,7 +154,7 @@ class CrossAdaptiveEnv(gym.Env):
             output_file_path=f"{self.effect.name}_render_{timestamp()}_{self.source_input}",
             loop=False,
         )
-        source.apply_effect(effect=self.effect)
+        source.prepare_to_render(effect=self.effect)
         for action in self.actions:
             mapping = self.action_to_mapping(action)
             done = source.render(mapping=mapping)

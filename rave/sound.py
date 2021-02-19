@@ -59,14 +59,13 @@ class Sound:
             f"{effect.name}.csd.jinja2", template_dir=EFFECTS_TEMPLATE_DIR
         ).compile()
 
-    # TODO: find a better name for this function as it doesn't require an effect
-    def apply_effect(self, effect: Effect = None, analyser: Analyser = None):
+    def prepare_to_render(self, effect: Effect = None, analyser: Analyser = None):
         """
-        Applies an effect to the sound object
+        Prepares the Sound to be rendered by compiling the CSD templates.
 
         Args:
-            effect: which Effect to apply, potentially blank for target sound
-            analyser: an Analyser object
+            effect: which Effect to apply, potentially None if no effect is desired
+            analyser: an Analyser object, potentially None if the Sound doesn't need to be analysed
         """
         effect_csd = self.compile_effect(effect) if effect is not None else None
 
@@ -102,7 +101,7 @@ class Sound:
             a boolean indicating if the rendered frame was the last one (True) or not (False)
         """
         if self.csd is None:
-            raise Exception("render is called prior to apply_effect")
+            raise Exception("render is called prior to prepare_to_render")
 
         if self.player is None:
             self.player = Player()
@@ -137,9 +136,9 @@ if __name__ == "__main__":
     ANALYSIS_CHANNELS = ["rms", "pitch_n", "centroid", "flux"]
     fx = Effect("bandpass")
     dry = Sound(AMEN)
-    dry.apply_effect()
+    dry.prepare_to_render()
     wet = Sound(AMEN)
-    wet.apply_effect(fx)
+    wet.prepare_to_render(fx)
 
     for i in range(100):
         dry.render()
