@@ -52,12 +52,6 @@ class Sound:
             self.n_frames = wav.getnframes()
             self.n_sec = self.n_frames / self.frame_rate
 
-    @staticmethod
-    def compile_effect(effect: Effect):
-        return TemplateHandler(
-            f"{effect.name}.csd.jinja2", template_dir=EFFECTS_TEMPLATE_DIR
-        ).compile()
-
     def prepare_to_render(self, effect: Effect = None, analyser: Analyser = None):
         """
         Prepares the Sound to be rendered by compiling the CSD templates.
@@ -66,7 +60,8 @@ class Sound:
             effect: which Effect to apply, potentially None if no effect is desired
             analyser: an Analyser object, potentially None if the Sound doesn't need to be analysed
         """
-        effect_csd = self.compile_effect(effect) if effect is not None else None
+
+        effect_csd = effect.to_csd() if effect is not None else None
 
         base = TemplateHandler("base.csd.jinja2", template_dir=EFFECTS_TEMPLATE_DIR)
         channels = effect.get_csd_channels() if effect is not None else []

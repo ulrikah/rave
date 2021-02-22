@@ -11,6 +11,8 @@ from rave.template_handler import TemplateHandler
 from rave.player import Player
 from rave.tools import timestamp, get_duration
 
+EFFECTS_TEMPLATE_DIR = "/Users/ulrikah/fag/thesis/rave/rave/effects"
+
 Channel = namedtuple("Channel", ["name", "value"])
 
 
@@ -24,7 +26,7 @@ class Effect:
         """
 
         effect = self.parse_effect_from_json(
-            f"/Users/ulrikah/fag/thesis/rave/rave/effects/{effect_name}.json"
+            os.path.join(EFFECTS_TEMPLATE_DIR, f"{effect_name}.json")
         )
 
         self.parameters = effect.parameters
@@ -70,6 +72,11 @@ class Effect:
             print("Unable to parse effect", effect_json_path)
             raise error
 
+    def to_csd(self):
+        return TemplateHandler(
+            f"{self.name}.csd.jinja2", template_dir=EFFECTS_TEMPLATE_DIR
+        ).compile()
+
 
 def main():
     effect = Effect("bandpass")
@@ -86,9 +93,7 @@ def main():
         channels = [
             Channel(name=name, value=value) for (name, value) in mapping.items()
         ]
-        fx = TemplateHandler(
-            f"{effect.name}.csd.jinja2", template_dir="rave/effects"
-        ).compile(mapping)
+        effect_csd = effect.to_csd()
         base = TemplateHandler("base.csd.jinja2", template_dir="rave/effects")
         if live_mode:
             # Add OSC receivers and stuff
@@ -100,7 +105,7 @@ def main():
             input=f"-i{input_file_path}",
             output="-odac",
             flags="-W",
-            effect=fx,
+            effect=effect_csd,
             channels=channels,
             duration=get_duration(input_file_path),
         )

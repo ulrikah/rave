@@ -17,8 +17,15 @@ def test_effect_initialisation():
     assert effect.parameters[1].mapping.skew_factor == 1.0
 
 
-def test_gets_csd_channels():
+def test_bandpass_have_the_right_csd_channels():
     effect = Effect("bandpass")
     channels = effect.get_csd_channels()
     channel_names = [channel.name for channel in channels]
     assert channel_names == ["cutoff_freq", "bandwidth"]
+
+
+def test_gain_have_the_right_csd_channels():
+    effect = Effect("gain")
+    channels = effect.get_csd_channels()
+    channel_names = [channel.name for channel in channels]
+    assert channel_names == ["gain"]
