@@ -85,9 +85,24 @@ class CrossAdaptiveEnv(gym.Env):
         ), "Number of params doesn't match length of action"
         mapping = {}
         for i, p in enumerate(self.effect.parameters):
-            fp = [p.mapping.min_value, p.mapping.max_value]
-            mapping[p.name] = np.interp(action[i], [0.0, 1.0], fp)
+            mapping[p.name] = self.map_action_to_effect_parameter(
+                action[i],
+                p.mapping.min_value,
+                p.mapping.max_value,
+                p.mapping.skew_factor,
+            )
         return mapping
+
+    @staticmethod
+    def map_action_to_effect_parameter(x, min_value, max_value, skew_factor):
+        """
+        Scaling outputs of the neural network in the [0, 1] range to a desired range with a skew factor.
+        The skew factor is a way of creating non-linear mappings. The mapping can be made linear by setting
+        the skew factor to 1.0.
+
+        This mapping trick is an idea borrowed from Jordal (2017) and Walsh (2008).
+        """
+        return min_value + (max_value - min_value) * np.exp(np.log(x) / skew_factor)
 
     def step(self, action: np.ndarray):
         """
