@@ -13,6 +13,12 @@ def test_analyser_initialisation():
         assert f"END {feature}" in analyser.analyser_csd
 
 
+def test_analyser_raises_error_on_unknown_extractor():
+    features = ["unkwown_extractor"]
+    with pytest.raises(ValueError):
+        analyser = Analyser(features)
+
+
 def test_output_channels_exist():
     features = ["rms", "pitch", "spectral"]
     analyser = Analyser(features)
