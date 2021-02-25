@@ -129,7 +129,7 @@ class CrossAdaptiveEnv(gym.Env):
         self.target_features = target_features
 
         reward = self.calculate_reward(source_features, target_features)
-        done = source_done or target_done
+        done = source_done
 
         if done:
             self.render()

@@ -2,6 +2,7 @@ import ray
 from ray.rllib.agents.trainer import Trainer
 from ray.rllib.agents import sac
 from gym import Env
+import numpy as np
 
 import argparse
 
@@ -57,14 +58,21 @@ def inference(checkpoint_path: str, input_sound: str):
     agent = sac.SACTrainer(config=config)
     agent.restore(checkpoint_path)
 
-    # run until episode ends
-    episode_reward = 0
+    episode_index = 0
+    episode_reward = []
     done = False
     obs = env.reset()
-    while not done:
+    while episode_index < 5:
         action = agent.compute_action(obs)
         obs, reward, done, info = env.step(action)
-        episode_reward += reward
+        episode_reward.append(reward)
+        if done:
+            episode_index += 1
+            print("\n" * 5)
+            print("DOOOOONE", episode_index)
+            print("mean episode reward:", np.mean(episode_reward))
+            print("\n" * 5)
+            episode_reward = []
 
 
 if __name__ == "__main__":

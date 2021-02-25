@@ -30,13 +30,14 @@ class Sound:
         input_source: path to a WAVE file or 'adc' for live input
         output_file_path: where to save the rendered audio
         loop: if the audio files should be wrapped at the end of the file
+        duration: sets the render duration for LIVE input. Duration is dictacted by the length of the audio file for static files
     """
 
-    def __init__(self, input_source, output_file_path=None, loop=True):
+    def __init__(self, input_source, output_file_path=None, loop=True, duration=10):
         if input_source == LIVE:
             self.save_to = LIVE
             self.input = LIVE
-            self.duration = 5  # NOTE: don't really know how to specify this
+            self.duration = duration  # NOTE: unsure how to better specify this
         else:
             if os.path.isfile(input_source):
                 abs_path = os.path.abspath(input_source)
