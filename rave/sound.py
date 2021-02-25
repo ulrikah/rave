@@ -72,7 +72,7 @@ class Sound:
 
         self.csd = base.compile(
             input=f"-i{self.input_file_path}",
-            output=f"-o{self.output}",
+            output=f"-o{self.output}" if self.output != NO_SOUND else self.output,
             channels=channels,
             sample_rate=SAMPLE_RATE,
             ksmps=KSMPS,
