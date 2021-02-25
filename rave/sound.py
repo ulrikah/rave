@@ -142,22 +142,3 @@ class Sound:
         self.player.start_halting(self.csd)
         self.player.render_until_end()
         return self.output
-
-
-if __name__ == "__main__":
-    amen = "amen_trim.wav"
-    analysis_channels = ["rms", "pitch_n", "centroid", "flux"]
-    fx = Effect("bandpass")
-    dry = Sound(amen)
-    dry.prepare_to_render()
-    wet = Sound(amen)
-    wet.prepare_to_render(fx)
-
-    for i in range(100):
-        dry.render()
-        wet.render()
-        dry_chans = dry.player.get_channels(analysis_channels)
-        wet_chans = wet.player.get_channels(analysis_channels)
-        assert not np.array_equal(
-            dry_chans, wet_chans
-        ), "Dry and wet should not be equal"
