@@ -31,14 +31,15 @@ def args():
 
 def inference(checkpoint_path: str, input_sound: str):
     """
-    Runs inference against a pretrained agent
+    Runs inference on a sound source against a pretrained agent
 
     Args:
         checkpoint_path: path to checkpoint from which to load the pretrained agent
         input_sound: a source sound to run inference against
     """
 
-    # TOOD: dette burde ikke trenge å være med
+    # NOTE: dette burde være definert et felles sted, i en YAML eller lignende, for å matche det som agenten har blitt trent på
+    # NOTE: går også an å teste om man egentlig trenger å sette config, siden jeg allerede gjør agent.restore()
     env_config = CROSS_ADAPTIVE_DEFAULT_CONFIG
     env_config["effect"] = Effect("dist_lpf")
     env_config["feature_extractors"] = ["rms"]

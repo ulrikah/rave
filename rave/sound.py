@@ -10,16 +10,13 @@ from rave.tools import timestamp, get_duration, k_to_sec
 from rave.player import Player
 
 # TODO: define these contants somewhere more globally accessible
-AMEN = "amen_trim.wav"
-NOISE = "noise.wav"
 
-LIVE = "-iadc"
+LIVE = "adc"
 NO_SOUND = "--nosound"
-DAC = "-odac"
+DAC = "dac"
 AUDIO_INPUT_FOLDER = "/Users/ulrikah/fag/thesis/rave/rave/input_audio/"
 AUDIO_OUTPUT_FOLDER = "/Users/ulrikah/fag/thesis/rave/rave/bounces/"
-AUDIO_INPUT_FILE = AMEN
-FLAGS = "-W"  # write WAVE instead of AIFF
+CSD_FOLDER = "/Users/ulrikah/fag/thesis/rave/rave/csd"
 EFFECTS_TEMPLATE_DIR = "/Users/ulrikah/fag/thesis/rave/rave/effects"
 SAMPLE_RATE = 44100
 KSMPS = 64
@@ -29,32 +26,48 @@ class Sound:
     """
     Representation of a sound object onto which an effect can be applied
 
-    TODO: add customization options for I/O, flags etc.
+    Args:
+        input_source: path to a WAVE file or 'adc' for live input
+        output_file_path: where to save the rendered audio
+        loop: if the audio files should be wrapped at the end of the file
     """
 
-    def __init__(self, input_filename, output_file_path=None, loop=True):
-        if os.path.isfile(input_filename):
-            abs_path = os.path.abspath(input_filename)
-        elif os.path.isfile(os.path.join(AUDIO_INPUT_FOLDER, input_filename)):
-            abs_path = os.path.abspath(os.path.join(AUDIO_INPUT_FOLDER, input_filename))
+    def __init__(self, input_source, output_file_path=None, loop=True):
+        if input_source == LIVE:
+            self.save_to = LIVE
+            self.input = LIVE
+            self.duration = 5  # NOTE: don't really know how to specify this
         else:
-            raise IOError(f"Couldn't find file {input_filename}")
-        self.input_filename = os.path.basename(abs_path)
-        self.input_file_path = abs_path
+            if os.path.isfile(input_source):
+                abs_path = os.path.abspath(input_source)
+            elif os.path.isfile(os.path.join(AUDIO_INPUT_FOLDER, input_source)):
+                abs_path = os.path.abspath(
+                    os.path.join(AUDIO_INPUT_FOLDER, input_source)
+                )
+            else:
+                raise IOError(f"Couldn't find file {input_source}")
+            self.save_to = os.path.splitext(os.path.basename(abs_path))[0]
+            self.input = abs_path
+            _, _, self.duration = self.get_properties(abs_path)
+
         if output_file_path is None:
             self.output = NO_SOUND
+            self.flags = ""
         else:
             self.output = os.path.join(AUDIO_OUTPUT_FOLDER, output_file_path)
-        self.get_properties()
+            self.flags = "-W"  # write as WAVE file
+
         self.player = None
         self.loop = loop
         self.csd = None
 
-    def get_properties(self):
-        with wave.open(self.input_file_path, "rb") as wav:
-            self.frame_rate = wav.getframerate()
-            self.n_frames = wav.getnframes()
-            self.n_sec = self.n_frames / self.frame_rate
+    @staticmethod
+    def get_properties(wav_path):
+        with wave.open(wav_path, "rb") as wav:
+            frame_rate = wav.getframerate()
+            n_frames = wav.getnframes()
+            duration = n_frames / frame_rate
+            return frame_rate, n_frames, duration
 
     def prepare_to_render(self, effect: Effect = None, analyser: Analyser = None):
         """
@@ -71,19 +84,19 @@ class Sound:
         channels = effect.get_csd_channels() if effect is not None else []
 
         self.csd = base.compile(
-            input=f"-i{self.input_file_path}",
+            input=f"-i{self.input}",
             output=f"-o{self.output}" if self.output != NO_SOUND else self.output,
             channels=channels,
             sample_rate=SAMPLE_RATE,
             ksmps=KSMPS,
-            flags="-W",
+            flags=self.flags,
             effect=effect_csd,
             analyser=analyser.analyser_csd if analyser is not None else "",
-            duration=self.n_sec,
+            duration=self.duration,
         )
         save_to_path = os.path.join(
-            "/Users/ulrikah/fag/thesis/rave/rave/csd",
-            f"{os.path.splitext(self.input_filename)[0]}_{timestamp()}.csd",
+            CSD_FOLDER,
+            f"{self.save_to}_{timestamp()}.csd",
         )
         base.save_to_file(save_to_path)
         return self.csd
@@ -131,18 +144,19 @@ class Sound:
 
 
 if __name__ == "__main__":
-    ANALYSIS_CHANNELS = ["rms", "pitch_n", "centroid", "flux"]
+    amen = "amen_trim.wav"
+    analysis_channels = ["rms", "pitch_n", "centroid", "flux"]
     fx = Effect("bandpass")
-    dry = Sound(AMEN)
+    dry = Sound(amen)
     dry.prepare_to_render()
-    wet = Sound(AMEN)
+    wet = Sound(amen)
     wet.prepare_to_render(fx)
 
     for i in range(100):
         dry.render()
         wet.render()
-        dry_chans = dry.player.get_channels(ANALYSIS_CHANNELS)
-        wet_chans = wet.player.get_channels(ANALYSIS_CHANNELS)
+        dry_chans = dry.player.get_channels(analysis_channels)
+        wet_chans = wet.player.get_channels(analysis_channels)
         assert not np.array_equal(
             dry_chans, wet_chans
         ), "Dry and wet should not be equal"
