@@ -1,6 +1,5 @@
 import os
 import ray
-from ray.rllib.agents import ppo
 from ray.rllib.agents import sac
 from ray.tune.logger import pretty_print
 
@@ -14,10 +13,12 @@ assert os.path.isdir(RAY_RESULTS_DIR)
 
 
 def train():
+    ray.init(local_mode=True)
+
     env_config = CROSS_ADAPTIVE_DEFAULT_CONFIG
     env_config["metric"] = NormalizedEuclidean()
     env_config["effect"] = Effect("dist_lpf")
-    env_config["feature_extractors"] = ["rms", "pitch", "spectral"]
+    env_config["feature_extractors"] = ["rms"]
 
     config = sac.DEFAULT_CONFIG.copy()
     config["env"] = CrossAdaptiveEnv
@@ -30,11 +31,10 @@ def train():
     analysis = ray.tune.run(
         sac.SACTrainer,
         config=config,
-        # stop={
-        #     # "training_iteration": 10
-        #     # "episode_reward_mean": 0.8,
-        # },
+        stop={"training_iteration": 500},
         local_dir=RAY_RESULTS_DIR,
+        checkpoint_at_end=True,
+        checkpoint_freq=100,
     )
 
 
