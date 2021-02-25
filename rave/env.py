@@ -166,7 +166,7 @@ class CrossAdaptiveEnv(gym.Env):
         done = False
         source = Sound(
             self.source_input,
-            output_file_path=f"{self.effect.name}_render_{timestamp()}_{self.source_input}",
+            output_file_path=f"{self.effect.name}_render_{timestamp()}_{os.path.basename(self.source_input)}",
             loop=False,
         )
         source.prepare_to_render(effect=self.effect)

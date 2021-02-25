@@ -32,11 +32,15 @@ class Sound:
     TODO: add customization options for I/O, flags etc.
     """
 
-    def __init__(self, filename, output_file_path=None, loop=True):
-        rel_path = os.path.join(AUDIO_INPUT_FOLDER, filename)
-        assert os.path.isfile(rel_path), f"Couldn't find {rel_path} from {os.getcwd()}"
-        self.filename = filename
-        self.input_file_path = rel_path
+    def __init__(self, input_filename, output_file_path=None, loop=True):
+        if os.path.isfile(input_filename):
+            abs_path = os.path.abspath(input_filename)
+        elif os.path.isfile(os.path.join(AUDIO_INPUT_FOLDER, input_filename)):
+            abs_path = os.path.abspath(os.path.join(AUDIO_INPUT_FOLDER, input_filename))
+        else:
+            raise IOError(f"Couldn't find file {input_filename}")
+        self.input_filename = os.path.basename(abs_path)
+        self.input_file_path = abs_path
         if output_file_path is None:
             self.output = NO_SOUND
         else:
@@ -79,7 +83,7 @@ class Sound:
         )
         save_to_path = os.path.join(
             "/Users/ulrikah/fag/thesis/rave/rave/csd",
-            f"{os.path.splitext(self.filename)[0]}_{timestamp()}.csd",
+            f"{os.path.splitext(self.input_filename)[0]}_{timestamp()}.csd",
         )
         base.save_to_file(save_to_path)
         return self.csd

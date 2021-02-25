@@ -3,23 +3,46 @@ from ray.rllib.agents.trainer import Trainer
 from ray.rllib.agents import sac
 from gym import Env
 
+import argparse
+
 from rave.env import CrossAdaptiveEnv, CROSS_ADAPTIVE_DEFAULT_CONFIG
 from rave.effect import Effect
 
 
-def inference(checkpoint_path: str):
+def args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-c",
+        "--checkpoint",
+        dest="checkpoint_path",
+        action="store",
+        help="Path to a checkpoint from a training session",
+    )
+    parser.add_argument(
+        "-i",
+        "--input",
+        dest="input_sound",
+        action="store",
+        default="noise.wav",
+        help="Specify the input to use. Should either by a .wav file or adc for live input",
+    )
+    return parser.parse_args()
+
+
+def inference(checkpoint_path: str, input_sound: str):
     """
     Runs inference against a pretrained agent
 
     Args:
         checkpoint_path: path to checkpoint from which to load the pretrained agent
+        input_sound: a source sound to run inference against
     """
 
     # TOOD: dette burde ikke trenge å være med
     env_config = CROSS_ADAPTIVE_DEFAULT_CONFIG
     env_config["effect"] = Effect("dist_lpf")
     env_config["feature_extractors"] = ["rms"]
-    env_config["source"] = "MoreNight_flips_a_dirty_Scottish_voicemail.wav"
+    env_config["source"] = input_sound
 
     config = sac.DEFAULT_CONFIG.copy()
     config["env"] = CrossAdaptiveEnv
@@ -44,6 +67,6 @@ def inference(checkpoint_path: str):
 
 
 if __name__ == "__main__":
+    args = args()
     ray.init(local_mode=True)
-    checkpoint_path = "/Users/ulrikah/fag/thesis/rave/rave/ray_results/SAC_2021-02-25_11-12-41/SAC_CrossAdaptiveEnv_fe899_00000_0_2021-02-25_11-12-41/checkpoint_400/checkpoint-400"
-    inference(checkpoint_path)
+    inference(args.checkpoint_path, args.input_sound)
