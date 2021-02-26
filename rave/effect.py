@@ -11,7 +11,7 @@ from rave.template_handler import TemplateHandler
 from rave.player import Player
 from rave.tools import timestamp, get_duration
 
-EFFECTS_TEMPLATE_DIR = "/Users/ulrikah/fag/thesis/rave/rave/effects"
+from rave.constants import EFFECT_TEMPLATE_DIR, EFFECT_BASE, CSD_JINJA_SUFFIX
 
 Channel = namedtuple("Channel", ["name", "value"])
 
@@ -26,7 +26,7 @@ class Effect:
         """
 
         effect = self.parse_effect_from_json(
-            os.path.join(EFFECTS_TEMPLATE_DIR, f"{effect_name}.json")
+            os.path.join(EFFECT_TEMPLATE_DIR, f"{effect_name}.json")
         )
 
         self.parameters = effect.parameters
@@ -74,7 +74,7 @@ class Effect:
 
     def to_csd(self):
         return TemplateHandler(
-            f"{self.name}.csd.jinja2", template_dir=EFFECTS_TEMPLATE_DIR
+            f"{self.name}{CSD_JINJA_SUFFIX}", template_dir=EFFECT_TEMPLATE_DIR
         ).compile()
 
 
@@ -94,7 +94,7 @@ def main():
             Channel(name=name, value=value) for (name, value) in mapping.items()
         ]
         effect_csd = effect.to_csd()
-        base = TemplateHandler("base.csd.jinja2", template_dir="rave/effects")
+        base = TemplateHandler(EFFECT_BASE, template_dir=EFFECT_TEMPLATE_DIR)
         if live_mode:
             # Add OSC receivers and stuff
             raise NotImplementedError

@@ -10,9 +10,6 @@ from rave.metrics import metric_from_name
 from rave.tools import timestamp
 from rave.config import parse_config_file
 
-RAY_RESULTS_DIR = "rave/ray_results"
-assert os.path.isdir(RAY_RESULTS_DIR)
-
 
 def args():
     parser = argparse.ArgumentParser()

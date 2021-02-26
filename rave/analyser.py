@@ -3,9 +3,12 @@ import os
 import json
 from types import SimpleNamespace
 
-
-ANALYSER_DIR = "/Users/ulrikah/fag/thesis/rave/rave/feature_extractors"
-ANALYSER_BASE = "base_analyser.csd.jinja2"
+from rave.constants import (
+    ANALYSER_BASE,
+    ANALYSER_DIR,
+    CSD_JINJA_SUFFIX,
+    CSD_JINJA_GLOBALS_SUFFIX,
+)
 
 
 class Analyser:
@@ -27,7 +30,7 @@ class Analyser:
         self.analysis_features = []
 
         for feature in feature_extractors:
-            feature_extractor_template = f"{feature}.csd.jinja2"
+            feature_extractor_template = f"{feature}{CSD_JINJA_SUFFIX}"
             template_path = os.path.join(ANALYSER_DIR, feature_extractor_template)
             meta_info_path = os.path.join(ANALYSER_DIR, f"{feature}.json")
             for path in [template_path, meta_info_path]:
@@ -48,7 +51,7 @@ class Analyser:
                 }
             )
 
-            feature_globals_template = f"{feature}.globals.csd.jinja2"
+            feature_globals_template = f"{feature}{CSD_JINJA_GLOBALS_SUFFIX}"
             if os.path.isfile(os.path.join(ANALYSER_DIR, feature_globals_template)):
                 self.global_variables.append(
                     TemplateHandler(

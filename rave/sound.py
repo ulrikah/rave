@@ -8,18 +8,19 @@ from rave.analyser import Analyser
 from rave.template_handler import TemplateHandler
 from rave.tools import timestamp, get_duration, k_to_sec
 from rave.player import Player
-
-# TODO: define these contants somewhere more globally accessible
-
-LIVE = "adc"
-NO_SOUND = "--nosound"
-DAC = "dac"
-AUDIO_INPUT_FOLDER = "/Users/ulrikah/fag/thesis/rave/rave/input_audio/"
-AUDIO_OUTPUT_FOLDER = "/Users/ulrikah/fag/thesis/rave/rave/bounces/"
-CSD_FOLDER = "/Users/ulrikah/fag/thesis/rave/rave/csd"
-EFFECTS_TEMPLATE_DIR = "/Users/ulrikah/fag/thesis/rave/rave/effects"
-SAMPLE_RATE = 44100
-KSMPS = 64
+from rave.constants import (
+    LIVE,
+    NO_SOUND,
+    DAC,
+    AUDIO_INPUT_DIR,
+    AUDIO_OUTPUT_DIR,
+    CSD_DIR,
+    EFFECT_TEMPLATE_DIR,
+    EFFECT_BASE,
+    SAMPLE_RATE,
+    KSMPS,
+    WAVE_FILE_FLAG,
+)
 
 
 class Sound:
@@ -41,10 +42,8 @@ class Sound:
         else:
             if os.path.isfile(input_source):
                 abs_path = os.path.abspath(input_source)
-            elif os.path.isfile(os.path.join(AUDIO_INPUT_FOLDER, input_source)):
-                abs_path = os.path.abspath(
-                    os.path.join(AUDIO_INPUT_FOLDER, input_source)
-                )
+            elif os.path.isfile(os.path.join(AUDIO_INPUT_DIR, input_source)):
+                abs_path = os.path.abspath(os.path.join(AUDIO_INPUT_DIR, input_source))
             else:
                 raise IOError(f"Couldn't find file {input_source}")
             self.save_to = os.path.splitext(os.path.basename(abs_path))[0]
@@ -55,8 +54,8 @@ class Sound:
             self.output = NO_SOUND
             self.flags = ""
         else:
-            self.output = os.path.join(AUDIO_OUTPUT_FOLDER, output_file_path)
-            self.flags = "-W"  # write as WAVE file
+            self.output = os.path.join(AUDIO_OUTPUT_DIR, output_file_path)
+            self.flags = WAVE_FILE_FLAG
 
         self.player = None
         self.loop = loop
@@ -81,7 +80,7 @@ class Sound:
 
         effect_csd = effect.to_csd() if effect is not None else None
 
-        base = TemplateHandler("base.csd.jinja2", template_dir=EFFECTS_TEMPLATE_DIR)
+        base = TemplateHandler(EFFECT_BASE, template_dir=EFFECT_TEMPLATE_DIR)
         channels = effect.get_csd_channels() if effect is not None else []
 
         self.csd = base.compile(
@@ -96,7 +95,7 @@ class Sound:
             duration=self.duration,
         )
         save_to_path = os.path.join(
-            CSD_FOLDER,
+            CSD_DIR,
             f"{self.save_to}_{timestamp()}.csd",
         )
         base.save_to_file(save_to_path)
