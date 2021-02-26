@@ -20,23 +20,33 @@ def args():
         help="Path to a checkpoint from a training session",
     )
     parser.add_argument(
-        "-i",
-        "--input",
-        dest="input_sound",
+        "-s",
+        "--source",
+        dest="source_sound",
         action="store",
         default="noise.wav",
-        help="Specify the input to use. Should either by a .wav file or adc for live input",
+        help="Specify the source input to use. Should either by a .wav file or adc for live input",
+    )
+
+    parser.add_argument(
+        "-t",
+        "--target",
+        dest="target_sound",
+        action="store",
+        default="amen.wav",
+        help="Specify the target input to use. Should either by a .wav file or adc for live input",
     )
     return parser.parse_args()
 
 
-def inference(checkpoint_path: str, input_sound: str):
+def inference(checkpoint_path: str, source_sound: str, target_sound: str):
     """
-    Runs inference on a sound source against a pretrained agent
+    Runs inference on a pretrained agent
 
     Args:
         checkpoint_path: path to checkpoint from which to load the pretrained agent
-        input_sound: a source sound to run inference against
+        source_sound: an input sound source
+        target_sound: a target sound source to evaluate the model against
     """
 
     # NOTE: dette burde være definert et felles sted, i en YAML eller lignende, for å matche det som agenten har blitt trent på
@@ -44,7 +54,8 @@ def inference(checkpoint_path: str, input_sound: str):
     env_config = CROSS_ADAPTIVE_DEFAULT_CONFIG
     env_config["effect"] = Effect("dist_lpf")
     env_config["feature_extractors"] = ["rms"]
-    env_config["source"] = input_sound
+    env_config["source"] = source_sound
+    env_config["target"] = source_sound
 
     config = sac.DEFAULT_CONFIG.copy()
     config["env"] = CrossAdaptiveEnv
@@ -77,5 +88,6 @@ def inference(checkpoint_path: str, input_sound: str):
 
 if __name__ == "__main__":
     args = args()
-    ray.init(local_mode=True)
-    inference(args.checkpoint_path, args.input_sound)
+    print(args)
+    # ray.init(local_mode=True)
+    # inference(args.checkpoint_path, args.source_sound, args.target_sound)
