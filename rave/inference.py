@@ -8,6 +8,8 @@ import argparse
 
 from rave.env import CrossAdaptiveEnv, CROSS_ADAPTIVE_DEFAULT_CONFIG
 from rave.effect import Effect
+from rave.metrics import metric_from_name
+from rave.config import parse_config_file
 
 
 def args():
@@ -20,11 +22,19 @@ def args():
         help="Path to a checkpoint from a training session",
     )
     parser.add_argument(
+        "--config",
+        dest="config_file",
+        action="store",
+        default="default.toml",
+        help="Path to a config file",
+    )
+
+    parser.add_argument(
         "-s",
         "--source",
         dest="source_sound",
         action="store",
-        default="noise.wav",
+        default=None,
         help="Specify the source input to use. Should either by a .wav file or adc for live input",
     )
 
@@ -33,40 +43,53 @@ def args():
         "--target",
         dest="target_sound",
         action="store",
-        default="amen.wav",
+        default=None,
         help="Specify the target input to use. Should either by a .wav file or adc for live input",
     )
     return parser.parse_args()
 
 
-def inference(checkpoint_path: str, source_sound: str, target_sound: str):
+def inference(
+    config_path: str,
+    checkpoint_path: str,
+    source_sound: str = None,
+    target_sound: str = None,
+):
     """
     Runs inference on a pretrained agent
 
     Args:
+        config: config dict
         checkpoint_path: path to checkpoint from which to load the pretrained agent
         source_sound: an input sound source
         target_sound: a target sound source to evaluate the model against
     """
 
-    # NOTE: dette burde være definert et felles sted, i en YAML eller lignende, for å matche det som agenten har blitt trent på
-    # NOTE: går også an å teste om man egentlig trenger å sette config, siden jeg allerede gjør agent.restore()
-    env_config = CROSS_ADAPTIVE_DEFAULT_CONFIG
-    env_config["effect"] = Effect("dist_lpf")
-    env_config["feature_extractors"] = ["rms"]
-    env_config["source"] = source_sound
-    env_config["target"] = source_sound
+    # NOTE: går an å teste om man egentlig trenger å sette config, siden jeg allerede gjør agent.restore()
 
-    config = sac.DEFAULT_CONFIG.copy()
-    config["env"] = CrossAdaptiveEnv
-    config["env_config"] = env_config
-    config["framework"] = "torch"
-    config["log_level"] = "WARN"
-    config["num_cpus_per_worker"] = 4
+    ray.init(local_mode=config["ray"]["local_mode"])
+
+    env_config = {
+        "effect": Effect(config["env"]["effect"]),
+        "metric": metric_from_name(config["env"]["metric"]),
+        "feature_extractors": config["env"]["feature_extractors"],
+        "source": source_sound if source_sound else config["env"]["source"],
+        "target": target_sound if target_sound else config["env"]["target"],
+        "live_mode": config["env"]["live_mode"],
+    }
+
+    agent_config = {
+        **sac.DEFAULT_CONFIG.copy(),
+        "env": CrossAdaptiveEnv,
+        "env_config": env_config,
+        "framework": "torch",
+        "num_cpus_per_worker": config["ray"]["num_cpus_per_worker"],
+        "log_level": config["ray"]["log_level"],
+    }
 
     env = CrossAdaptiveEnv(env_config)
 
-    agent = sac.SACTrainer(config=config)
+    agent = sac.SACTrainer(config=agent_config)
     agent.restore(checkpoint_path)
 
     episode_index = 0
@@ -89,5 +112,11 @@ def inference(checkpoint_path: str, source_sound: str, target_sound: str):
 if __name__ == "__main__":
     args = args()
     print(args)
-    # ray.init(local_mode=True)
-    # inference(args.checkpoint_path, args.source_sound, args.target_sound)
+
+    config = parse_config_file(args.config_file)
+    inference(
+        config,
+        checkpoint_path=args.checkpoint_path,
+        source_sound=args.source_sound,
+        target_sound=args.target_sound,
+    )

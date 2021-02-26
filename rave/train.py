@@ -30,7 +30,6 @@ def args():
 def train(config: dict):
     ray.init(local_mode=config["ray"]["local_mode"])
 
-    # env_config = CROSS_ADAPTIVE_DEFAULT_CONFIG
     env_config = {
         "effect": Effect(config["env"]["effect"]),
         "metric": metric_from_name(config["env"]["metric"]),
