@@ -20,6 +20,15 @@ class AbstractMetric:
         return reward >= reward_range[0] and reward <= reward_range[1]
 
 
+def metric_from_name(name: str) -> AbstractMetric:
+    # raises a KeyError if no corresponding metric is found
+    return {
+        "l1": AbsoluteValueNorm,
+        "l2": EuclideanDistance,
+        "l2_normalized": NormalizedEuclidean,
+    }[name]()
+
+
 class AbsoluteValueNorm(AbstractMetric):
     def __init__(self):
         super().__init__()

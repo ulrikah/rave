@@ -19,18 +19,13 @@ NOISE = "noise.wav"
 SINE = "sine220.wav"
 
 
-class Mode(Enum):
-    LIVE = "live"
-    STATIC = "static"
-
-
 CROSS_ADAPTIVE_DEFAULT_CONFIG = {
     "effect": Effect("bandpass"),
     "metric": EuclideanDistance(),
-    "mode": Mode.STATIC,
     "source": NOISE,
     "target": AMEN,
     "feature_extractors": ["rms", "pitch", "spectral"],
+    "live_mode": False,
 }
 
 
@@ -44,7 +39,7 @@ class CrossAdaptiveEnv(gym.Env):
         self.target_input = config["target"]
         self.effect = config["effect"]
         self.metric = config["metric"]
-        self.mode = config["mode"]
+        self.live_mode = config["live_mode"]
         self.feature_extractors = config["feature_extractors"]
 
         if not len(self.feature_extractors) > 0:
@@ -71,7 +66,7 @@ class CrossAdaptiveEnv(gym.Env):
 
         self.target.prepare_to_render(effect=None, analyser=analyser)
 
-        if self.mode == Mode.LIVE:
+        if self.live_mode:
             self.mediator = Mediator()
 
         self.actions = []
@@ -119,7 +114,7 @@ class CrossAdaptiveEnv(gym.Env):
         source_done = self.source.render(mapping=mapping)
         target_done = self.target.render()
 
-        if self.mode == Mode.LIVE:
+        if self.live_mode:
             source_features, target_features = self.mediator.get_features()
         else:
             source_features = self.source.player.get_channels(self.analysis_features)
@@ -140,7 +135,7 @@ class CrossAdaptiveEnv(gym.Env):
         return np.concatenate((self.source_features, self.target_features))
 
     def reset(self):
-        if self.mode == Mode.LIVE:
+        if self.live_mode:
             self.mediator.clear()
         self.actions = []
         self.rewards = []
@@ -153,7 +148,7 @@ class CrossAdaptiveEnv(gym.Env):
         return reward
 
     def close(self):
-        if self.mode == Mode.LIVE:
+        if self.live_mode:
             self.mediator.terminate()
         for sound in [self.source, self.target]:
             if sound.player is not None:
