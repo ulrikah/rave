@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import argparse
 import ray
 from ray.rllib.agents import sac
@@ -9,6 +10,7 @@ from rave.effect import Effect
 from rave.metrics import metric_from_name
 from rave.tools import timestamp
 from rave.config import parse_config_file
+from rave.constants import RAY_RESULTS_DIR
 
 
 def args():
@@ -20,11 +22,23 @@ def args():
         default="default.toml",
         help="Path to a config file",
     )
+    parser.add_argument(
+        "--checkpoint",
+        dest="checkpoint_path",
+        action="store",
+        default=None,
+        help="Path to a checkpoint from a training session (for resuming training)",
+    )
 
     return parser.parse_args()
 
 
-def train(config: dict):
+def mean_reward_stopper(trial_id, result):
+    # stop if mean reward hits 95%
+    return result["episode_reward_mean"] / result["episode_len_mean"] > 0.95
+
+
+def train(config: dict, checkpoint_path: str = None):
     ray.init(local_mode=config["ray"]["local_mode"])
 
     env_config = {
@@ -44,20 +58,30 @@ def train(config: dict):
         "num_cpus_per_worker": config["ray"]["num_cpus_per_worker"],
         "log_level": config["ray"]["log_level"],
     }
-
     agent = sac.SACTrainer(config=agent_config)
+
+    if checkpoint_path:
+        # NOTE
+        # Hacky way to find the corresponding Tune 'name' of the restored experiment since
+        # the checkpoint is always three levels deeper. This should ideally be replaced
+        path = Path(checkpoint_path)
+        name = path.parent.parent.parent.name
+    else:
+        name = f'{agent._name}_{env_config["effect"].name}_{"_".join(env_config["feature_extractors"])}_{timestamp()}'
+
     analysis = ray.tune.run(
         sac.SACTrainer,
         config=agent_config,
-        stop=config["agent"]["stop"],
-        local_dir=config["ray"]["local_dir"],
+        stop=mean_reward_stopper,
+        local_dir=RAY_RESULTS_DIR,
         checkpoint_at_end=config["agent"]["checkpoint_at_end"],
         checkpoint_freq=config["agent"]["checkpoint_freq"],
-        name=f'{agent._name}_{env_config["effect"].name}_{"_".join(env_config["feature_extractors"])}_{timestamp()}',
+        name=name,
+        restore=checkpoint_path,  # None is default
     )
 
 
 if __name__ == "__main__":
     args = args()
     config = parse_config_file(args.config_file)
-    train(config)
+    train(config, args.checkpoint_path)

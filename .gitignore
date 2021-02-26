@@ -18,4 +18,3 @@ __pycache__/
 # assets
 ./*.wav
 ./*.aif*
-ray_results/
