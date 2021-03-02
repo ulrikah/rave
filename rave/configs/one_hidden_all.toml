@@ -3,7 +3,6 @@ local_mode = true
 log_level = "WARN" # 'INFO' or 'DEBUG are other options
 num_cpus_per_worker = 4
 
-
 [env]
 effect = "dist_lpf"
 feature_extractors = ["rms", "pitch", "spectral"]
@@ -15,5 +14,5 @@ live_mode = false
 [agent]
 checkpoint_freq = 100
 checkpoint_at_end = true
-hidden_layers = [256, 256]
+hidden_layers = [256]
 activation = "relu"

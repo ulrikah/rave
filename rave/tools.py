@@ -30,13 +30,16 @@ def get_duration(wav_file):
     return float(dur_bytes.decode("utf-8").strip())
 
 
-def timestamp():
+def timestamp(millis=True):
     """
     Util for timestamping filenames and logs
 
     filename = f"bounce_{timestamp()}.wav"
     """
-    return datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S_%f")
+    fmt = "%Y-%m-%d_%H-%M-%S"
+    if millis:
+        fmt += "_%f"
+    return datetime.datetime.now().strftime(fmt)
 
 
 def plot_melspectrogram(S: np.ndarray, sr=44100):

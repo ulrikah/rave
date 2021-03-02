@@ -14,3 +14,5 @@ live_mode = false
 [agent]
 checkpoint_freq = 100
 checkpoint_at_end = true
+hidden_layers = [256, 256]
+activation = "relu"

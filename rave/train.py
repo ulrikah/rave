@@ -4,6 +4,7 @@ import argparse
 import ray
 from ray.rllib.agents import sac
 from ray.tune.logger import pretty_print
+from ray.tune.progress_reporter import CLIReporter
 
 from rave.env import CrossAdaptiveEnv, CROSS_ADAPTIVE_DEFAULT_CONFIG
 from rave.effect import Effect
@@ -34,7 +35,7 @@ def args():
 
 
 def mean_reward_stopper(trial_id, result):
-    # stop if mean reward hits 95%
+    # stop episode if mean reward hits 95%
     return result["episode_reward_mean"] / result["episode_len_mean"] > 0.95
 
 
@@ -57,17 +58,30 @@ def train(config: dict, checkpoint_path: str = None):
         "framework": "torch",
         "num_cpus_per_worker": config["ray"]["num_cpus_per_worker"],
         "log_level": config["ray"]["log_level"],
+        # Model options for the Q network(s).
+        "Q_model": {
+            "fcnet_activation": config["agent"]["activation"],
+            "fcnet_hiddens": config["agent"]["hidden_layers"],
+        },
+        # Model options for the policy function.
+        "policy_model": {
+            "fcnet_activation": config["agent"]["activation"],
+            "fcnet_hiddens": config["agent"]["hidden_layers"],
+        },
     }
+
     agent = sac.SACTrainer(config=agent_config)
 
     if checkpoint_path:
         # NOTE
-        # Hacky way to find the corresponding Tune 'name' of the restored experiment since
-        # the checkpoint is always three levels deeper. This should ideally be replaced
+        # hacky way to find the corresponding Tune 'name' of the restored experiment since
+        # the checkpoint is always three levels deeper
         path = Path(checkpoint_path)
         name = path.parent.parent.parent.name
     else:
-        name = f'{agent._name}_{env_config["effect"].name}_{"_".join(env_config["feature_extractors"])}_{timestamp()}'
+        name = f'{agent._name}_{config["name"]}_{timestamp(millis=False)}'
+
+    progress_reporter = CLIReporter(max_report_frequency=15)
 
     analysis = ray.tune.run(
         sac.SACTrainer,
@@ -78,10 +92,12 @@ def train(config: dict, checkpoint_path: str = None):
         checkpoint_freq=config["agent"]["checkpoint_freq"],
         name=name,
         restore=checkpoint_path,  # None is default
+        progress_reporter=progress_reporter,
     )
 
 
 if __name__ == "__main__":
     args = args()
     config = parse_config_file(args.config_file)
+    config["name"] = Path(args.config_file).stem
     train(config, args.checkpoint_path)
