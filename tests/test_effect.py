@@ -29,3 +29,10 @@ def test_gain_have_the_right_csd_channels():
     channels = effect.get_csd_channels()
     channel_names = [channel.name for channel in channels]
     assert channel_names == ["gain"]
+
+
+def test_formant_have_the_right_channels():
+    effect = Effect("formant")
+    channels = effect.get_csd_channels()
+    channel_names = [channel.name for channel in channels]
+    assert channel_names == ["freq"]

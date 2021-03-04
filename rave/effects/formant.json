@@ -1,0 +1,12 @@
+{
+    "parameters": [
+        {
+            "name": "freq",
+            "mapping": {
+                "min_value": 0,
+                "max_value": 5000,
+                "skew_factor": 0.3
+            }
+        }
+    ]
+}

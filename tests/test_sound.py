@@ -10,20 +10,29 @@ def test_dry_and_wet_are_not_the_same():
     feature_extractors = ["rms"]
     analyser = Analyser(feature_extractors)
     analysis_channels = analyser.analysis_features
-    effect = Effect("bandpass")
-    dry = Sound(amen)
-    dry.prepare_to_render(analyser=analyser)
-    wet = Sound(amen)
-    wet.prepare_to_render(effect=effect, analyser=analyser)
 
-    for i in range(100):
-        dry.render()
-        wet.render()
-        dry_chans = dry.player.get_channels(analysis_channels)
-        wet_chans = wet.player.get_channels(analysis_channels)
-        assert not np.array_equal(
-            dry_chans, wet_chans
-        ), "Dry and wet should not be equal"
+    for effect_name in [
+        "bandpass",
+        "formant",
+        "dist_lpf",
+        "freeverb",
+        "distortion",
+        "gain",
+    ]:
+        effect = Effect(effect_name)
+        dry = Sound(amen)
+        dry.prepare_to_render(analyser=analyser)
+        wet = Sound(amen)
+        wet.prepare_to_render(effect=effect, analyser=analyser)
+
+        for i in range(10):
+            dry.render()
+            wet.render()
+            dry_chans = dry.player.get_channels(analysis_channels)
+            wet_chans = wet.player.get_channels(analysis_channels)
+            assert not np.array_equal(
+                dry_chans, wet_chans
+            ), f"Dry and wet should not be equal for {effect_name}"
 
 
 def test_two_dry_signals_yield_the_same_features():
