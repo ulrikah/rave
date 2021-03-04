@@ -6,9 +6,9 @@ num_cpus_per_worker = 4
 
 [env]
 effect = "dist_lpf"
-feature_extractors = ["rms"]
+feature_extractors = ["rms", "pitch", "spectral"]
 source = "noise.wav"
-target = "amen.wav"
+target = "sine440.wav"
 metric = "l2_normalized"
 live_mode = false
 eval_interval = 10

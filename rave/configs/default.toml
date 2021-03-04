@@ -11,6 +11,7 @@ source = "noise.wav"
 target = "amen.wav"
 metric = "l2_normalized"
 live_mode = false
+eval_interval = 10
 
 [agent]
 checkpoint_freq = 100

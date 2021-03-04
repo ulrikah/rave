@@ -26,6 +26,7 @@ CROSS_ADAPTIVE_DEFAULT_CONFIG = {
     "target": AMEN,
     "feature_extractors": ["rms", "pitch", "spectral"],
     "live_mode": False,
+    "eval_interval": 10,
 }
 
 
@@ -41,6 +42,11 @@ class CrossAdaptiveEnv(gym.Env):
         self.metric = config["metric"]
         self.live_mode = config["live_mode"]
         self.feature_extractors = config["feature_extractors"]
+
+        # how often the model should evaluate
+        self.eval_interval = config["eval_interval"]
+        if self.eval_interval is not None:
+            self.step_index = 0
 
         if not len(self.feature_extractors) > 0:
             raise ValueError(
@@ -102,9 +108,9 @@ class CrossAdaptiveEnv(gym.Env):
     def step(self, action: np.ndarray):
         """
         Algorithm:
-            Use new action to generate new frames of audio
-            Analyse the new frames in CSound and send back features
-            Use features to calculate reward
+            1. Use new action to generate a new frame of audio for both source and target
+            2. Analyse the new frame in Csound and send back features
+            3. Use features to calculate reward
         """
         assert self.action_space.contains(action)
         self.actions.append(action)
@@ -124,11 +130,28 @@ class CrossAdaptiveEnv(gym.Env):
         self.target_features = target_features
 
         reward = self.calculate_reward(source_features, target_features)
+
+        """
+        An episode is either over at the end of every interval (if using this mechanism), 
+        or when the rendering of the source sound is complete. However, we only reset and
+        bounce when the source sound is complete
+        """
+
         done = source_done
 
-        if done:
+        if self.eval_interval is not None:
+            self.step_index += 1
+            should_evaluate = (
+                self.step_index != 0 and self.step_index % self.eval_interval == 0
+            )
+            if should_evaluate:
+                self.step_index = 0
+                done = True
+
+        if source_done:
             self.render()
             self.reset()
+
         return self.get_state(), reward, done, {}
 
     def get_state(self):

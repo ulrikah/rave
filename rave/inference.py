@@ -76,6 +76,7 @@ def inference(
         "source": source_sound if source_sound else config["env"]["source"],
         "target": target_sound if target_sound else config["env"]["target"],
         "live_mode": config["env"]["live_mode"],
+        "eval_interval": None,
     }
 
     agent_config = {
@@ -85,6 +86,16 @@ def inference(
         "framework": "torch",
         "num_cpus_per_worker": config["ray"]["num_cpus_per_worker"],
         "log_level": config["ray"]["log_level"],
+        # Model options for the Q network(s).
+        "Q_model": {
+            "fcnet_activation": config["agent"]["activation"],
+            "fcnet_hiddens": config["agent"]["hidden_layers"],
+        },
+        # Model options for the policy function.
+        "policy_model": {
+            "fcnet_activation": config["agent"]["activation"],
+            "fcnet_hiddens": config["agent"]["hidden_layers"],
+        },
     }
 
     env = CrossAdaptiveEnv(env_config)
@@ -98,6 +109,7 @@ def inference(
     obs = env.reset()
     while episode_index < 5:
         action = agent.compute_action(obs)
+        # TODO: inference shouldn't need to calculate reward
         obs, reward, done, info = env.step(action)
         episode_reward.append(reward)
         if done:
