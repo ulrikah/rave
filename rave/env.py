@@ -13,6 +13,7 @@ from rave.analyser import Analyser
 from rave.sound import Sound
 from rave.mediator import Mediator
 from rave.tools import timestamp, play_wav
+from rave.constants import DAC
 
 AMEN = "amen_trim.wav"
 NOISE = "noise.wav"
@@ -42,6 +43,7 @@ class CrossAdaptiveEnv(gym.Env):
         self.metric = config["metric"]
         self.live_mode = config["live_mode"]
         self.feature_extractors = config["feature_extractors"]
+        self.render_to_dac = config["render_to_dac"]
 
         # how often the model should evaluate
         self.eval_interval = config["eval_interval"]
@@ -185,9 +187,14 @@ class CrossAdaptiveEnv(gym.Env):
         Renders a file with all the actions from the episode
         """
         done = False
+        if self.render_to_dac:
+            output = DAC
+        else:
+            output = f"{self.effect.name}_render_{timestamp()}_{os.path.basename(self.source_input)}"
+
         source = Sound(
             self.source_input,
-            output_file_path=f"{self.effect.name}_render_{timestamp()}_{os.path.basename(self.source_input)}",
+            output=output,
             loop=False,
         )
         source.prepare_to_render(effect=self.effect)

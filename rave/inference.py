@@ -46,6 +46,14 @@ def args():
         default=None,
         help="Specify the target input to use. Should either by a .wav file or adc for live input",
     )
+
+    parser.add_argument(
+        "--dac",
+        dest="render_to_dac",
+        action="store_true",
+        default=False,
+        help="If the inference should output directly to the speakers",
+    )
     return parser.parse_args()
 
 
@@ -54,6 +62,7 @@ def inference(
     checkpoint_path: str,
     source_sound: str = None,
     target_sound: str = None,
+    render_to_dac=False,
 ):
     """
     Runs inference on a pretrained agent
@@ -77,6 +86,7 @@ def inference(
         "target": target_sound if target_sound else config["env"]["target"],
         "live_mode": config["env"]["live_mode"],
         "eval_interval": None,
+        "render_to_dac": render_to_dac,
     }
 
     agent_config = {
@@ -131,4 +141,5 @@ if __name__ == "__main__":
         checkpoint_path=args.checkpoint_path,
         source_sound=args.source_sound,
         target_sound=args.target_sound,
+        render_to_dac=args.render_to_dac,
     )
