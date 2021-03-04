@@ -53,7 +53,7 @@ def test_osc_route_works():
 
 
 def test_feature_extractors_output_something():
-    feature_extractors = ["rms", "pitch", "spectral"]
+    feature_extractors = ["rms", "pitch", "spectral", "mfcc"]
     analyser = Analyser(feature_extractors)
     analysis_features = analyser.analysis_features
     orc = f"""
@@ -63,7 +63,7 @@ def test_feature_extractors_output_something():
     0dbfs=1
 
     instr 1
-    aOut poscil 0.3, 220
+    aOut poscil 1.0, 220
     out aOut
     {analyser.analyser_csd}
     endin
