@@ -35,8 +35,7 @@ def args():
 
 
 def mean_reward_stopper(trial_id, result):
-    # stop episode if mean reward hits 95%
-    return result["episode_reward_mean"] / result["episode_len_mean"] > 0.95
+    return result["episode_reward_mean"] / result["episode_len_mean"] > 0.99
 
 
 def train(config: dict, checkpoint_path: str = None):
@@ -49,6 +48,7 @@ def train(config: dict, checkpoint_path: str = None):
         "source": config["env"]["source"],
         "target": config["env"]["target"],
         "live_mode": config["env"]["live_mode"],
+        "eval_interval": config["env"]["eval_interval"],
     }
 
     agent_config = {

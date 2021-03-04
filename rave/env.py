@@ -150,18 +150,21 @@ class CrossAdaptiveEnv(gym.Env):
 
         if source_done:
             self.render()
-            self.reset()
+            self._reset_internal_state()
 
         return self.get_state(), reward, done, {}
 
     def get_state(self):
         return np.concatenate((self.source_features, self.target_features))
 
-    def reset(self):
+    def _reset_internal_state(self):
         if self.live_mode:
             self.mediator.clear()
         self.actions = []
         self.rewards = []
+
+    def reset(self):
+        # NOTE: rrlib calls reset internally, so to control the behavior this only returns the state
         return self.get_state()
 
     def calculate_reward(self, source, target):
