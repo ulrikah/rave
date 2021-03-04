@@ -1,4 +1,12 @@
 {
     "input": "aAnalyserInput",
-    "output_channels": ["centroid", "flux"]
+    "output_channels": [
+        "centroid",
+        "spread",
+        "skewness",
+        "kurtosis",
+        "flatness",
+        "crest",
+        "flux"
+    ]
 }

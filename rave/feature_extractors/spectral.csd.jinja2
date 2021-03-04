@@ -80,20 +80,33 @@ endif
 
 ; ***************
 ; normalization
-    kpitch_n        = limit(divz(kcps-kpitch_low, kpitch_high-kpitch_low, 1), 0, 1)    ; normalized and offset
+
     kcentroid_n     = kcentroidf / (sr*0.15)
+    kspread_n       = kspread / (sr*0.15)
+    kskewness_n     = kskewness / (sr*0.0005)
+    kurtosis_n      = kurtosis / (sr*0.006)
+    kflatness_n     = kflatness * 3
+    kcrest_n        = kcrest / 250
     kflux_n         = kfluxf * 4
-    imfccscale      = 1/200
 
 
 ; ***************
 ; limiter to (0, 1) range
-    krms            limit krms, 0, 1
-    kcentroid_l         limit kcentroid_n, 0, 1
+    kcentroid_l     limit kcentroid_n, 0, 1
+    kspread_l       limit kspread_n, 0, 1
+    kskewness_l     limit kskewness_n, 0, 1
+    kurtosis_l      limit kurtosis_n, 0, 1
+    kflatness_l     limit kflatness_n, 0, 1
+    kcrest_l        limit kcrest_n, 0, 1
     kflux_l         limit kflux_n, 0, 1
     
 ; ***************
 ; return features
 
-chnset kcentroid_l, "centroid"
-chnset kflux_l, "flux"
+chnset kcentroid_l,     "centroid"
+chnset kspread_l,       "spread"
+chnset kskewness_l,     "skewness"
+chnset kurtosis_l,      "kurtosis"
+chnset kflatness_l,     "flatness"
+chnset kcrest_l,        "crest"
+chnset kflux_l,         "flux"

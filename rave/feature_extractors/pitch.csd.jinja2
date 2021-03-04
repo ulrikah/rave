@@ -31,9 +31,9 @@
 ; ***************
 ; normalization
 
-    kpitch        = limit(divz(kcps-kpitch_low, kpitch_high-kpitch_low, 1), 0, 1)    ; normalized and offset
+    kpitch_n        = limit(divz(kcps-kpitch_low, kpitch_high-kpitch_low, 1), 0, 1)    ; normalized and offset
 
 ; ***************
 ; return features
 
-chnset kpitch, "pitch"
+chnset kpitch_n, "pitch"
