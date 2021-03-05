@@ -53,41 +53,44 @@ def test_osc_route_works():
 
 
 def test_feature_extractors_output_something():
-    feature_extractors = ["rms", "pitch", "spectral", "mfcc"]
-    analyser = Analyser(feature_extractors)
-    analysis_features = analyser.analysis_features
-    orc = f"""
-    sr=44100
-    ksmps=64
-    nchnls=1
-    0dbfs=1
+    feature_extractors = ["pitch", "spectral", "mfcc"]
+    for fe in feature_extractors:
+        # the other extractors depend on RMS for now
+        analyser = Analyser(["rms", fe])
+        analysis_features = analyser.analysis_features
+        orc = f"""
+        sr=44100
+        ksmps=64
+        nchnls=1
+        0dbfs=1
 
-    instr 1
-    aOut poscil 1.0, 220
-    out aOut
-    {analyser.analyser_csd}
-    endin
-    """
+        instr 1
+        aOut poscil 1.0, 220
+        out aOut
+        {analyser.analyser_csd}
+        endin
+        """
 
-    sco = """
-    i1 0 3
-    """
+        sco = """
+        i1 0 3
+        """
 
-    cs = ctcsound.Csound()
-    cs.setOption("--nosound")
+        cs = ctcsound.Csound()
+        cs.setOption("--nosound")
 
-    cs.compileOrc(orc)
-    cs.readScore(sco)
+        cs.compileOrc(orc)
+        cs.readScore(sco)
 
-    cs.start()
-    features = []
-    while cs.performBuffer() == 0:
-        features.append(
-            [cs.controlChannel(feature)[0] for feature in analysis_features]
-        )
-    features = np.array(features)
-    for i in range(len(analysis_features)):
-        assert features[:, i].mean() > 0.0
-    cs.cleanup()
-    cs.reset()
-    del cs
+        cs.start()
+        features = []
+
+        while cs.performBuffer() == 0:
+            features.append(
+                [cs.controlChannel(feature)[0] for feature in analysis_features]
+            )
+        features = np.array(features)
+        for i in range(len(analysis_features)):
+            assert features[:, i].mean() > 0.0
+        cs.cleanup()
+        cs.reset()
+        del cs
