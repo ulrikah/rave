@@ -22,10 +22,8 @@ class Player:
             self._open_message_buffer()
         result = self.cs.compileCsdText(csd)
         result = self.cs.start()
-        while True:
-            result = self.cs.performKsmps()
-            if result != 0:
-                break
+        while self.cs.performKsmps() == 0:
+            pass
         self.cleanup(exit)
 
     def _open_message_buffer(self):

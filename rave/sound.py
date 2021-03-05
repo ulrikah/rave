@@ -50,7 +50,7 @@ class Sound:
             self.input = abs_path
             _, _, self.duration = self.get_properties(abs_path)
 
-        if output is None:
+        if output is None or output is NO_SOUND:
             self.output = NO_SOUND
             self.flags = ""
         elif output is DAC:
@@ -102,7 +102,20 @@ class Sound:
             f"{self.save_to}_{timestamp()}.csd",
         )
         base.save_to_file(save_to_path)
-        return self.csd
+        return save_to_path
+
+    def stream(self):
+        """
+        TODO: use a separate thread for this process. Consider writing the CSD to disk
+        and launching it in a separate process
+        """
+        if self.input is not LIVE:
+            raise ValueError("This method should not be called when using static input")
+        if self.csd is None:
+            raise ValueError("This method is called prior to CSD instantiation")
+        self.player = Player(debug=True)
+        self.player.render_csd(self.csd)
+        return
 
     def render(self, mapping=None):
         """
@@ -115,7 +128,7 @@ class Sound:
             a boolean indicating if the rendered frame was the last one (True) or not (False)
         """
         if self.csd is None:
-            raise Exception("render is called prior to prepare_to_render")
+            raise ValueError("This method is called prior to CSD instantiation")
 
         if self.player is None:
             self.player = Player(debug=True)
