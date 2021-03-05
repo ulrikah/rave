@@ -11,7 +11,7 @@ source = "chords_5s.wav"
 target = "digi_forest_5s.wav"
 metric = "l2_normalized"
 live_mode = false
-eval_interval = 10
+eval_interval = 1
 
 [agent]
 checkpoint_freq = 100

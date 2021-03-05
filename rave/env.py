@@ -27,7 +27,7 @@ CROSS_ADAPTIVE_DEFAULT_CONFIG = {
     "target": AMEN,
     "feature_extractors": ["rms", "pitch", "spectral"],
     "live_mode": False,
-    "eval_interval": 10,
+    "eval_interval": 1,
 }
 
 
