@@ -9,7 +9,7 @@
  if kcnt == gifftsize then
   kFFT[] = rfft(kIn)
   kPows[] = pows(kFFT)
-  kMFB[] = log(mfb(kPows,300,8000,32))
+  kMFB[] = log(mfb(kPows,300,8000,8))
   kmfcc[] = dct(kMFB)
   kcnt = 0
  endif
@@ -26,41 +26,6 @@ kmfcc4          samphold kmfcc[4]*imfccscale, kgate
 kmfcc5          samphold kmfcc[5]*imfccscale, kgate
 kmfcc6          samphold kmfcc[6]*imfccscale, kgate
 kmfcc7          samphold kmfcc[7]*imfccscale, kgate
-kmfcc8          samphold kmfcc[8]*imfccscale, kgate
-kmfcc9          samphold kmfcc[9]*imfccscale, kgate
-kmfcc10         samphold kmfcc[10]*imfccscale, kgate
-kmfcc11         samphold kmfcc[11]*imfccscale, kgate
-kmfcc12         samphold kmfcc[12]*imfccscale, kgate
-kmfcc13         samphold kmfcc[13]*imfccscale, kgate
-kmfcc14         samphold kmfcc[14]*imfccscale, kgate
-kmfcc15         samphold kmfcc[15]*imfccscale, kgate
-kmfcc16         samphold kmfcc[16]*imfccscale, kgate
-kmfcc17         samphold kmfcc[17]*imfccscale, kgate
-kmfcc18         samphold kmfcc[18]*imfccscale, kgate
-kmfcc19         samphold kmfcc[19]*imfccscale, kgate
-kmfcc20         samphold kmfcc[20]*imfccscale, kgate
-kmfcc21         samphold kmfcc[21]*imfccscale, kgate
-kmfcc22         samphold kmfcc[22]*imfccscale, kgate
-kmfcc23         samphold kmfcc[23]*imfccscale, kgate
-kmfcc24         samphold kmfcc[24]*imfccscale, kgate
-kmfcc25         samphold kmfcc[25]*imfccscale, kgate
-kmfcc26         samphold kmfcc[26]*imfccscale, kgate
-kmfcc27         samphold kmfcc[27]*imfccscale, kgate
-kmfcc28         samphold kmfcc[28]*imfccscale, kgate
-kmfcc29         samphold kmfcc[29]*imfccscale, kgate
-kmfcc30         samphold kmfcc[30]*imfccscale, kgate
-kmfcc31         samphold kmfcc[31]*imfccscale, kgate
-
-kmfccdiff       = (abs((kmfcc1-kmfcc2)*0.5)+
-                    abs(kmfcc2-kmfcc3)+
-                    abs(kmfcc3-kmfcc4)+
-                    abs(kmfcc4-kmfcc5)+
-                    abs(kmfcc5-kmfcc6))
-kmfccdiff       mediank kmfccdiff, 60, 60
-kmfccdiff       tonek kmfccdiff, 1
-
-
-
 
 ; ***************
 ; limiter
@@ -73,35 +38,9 @@ kmfcc4          limit kmfcc4, 0, 1
 kmfcc5          limit kmfcc5, 0, 1
 kmfcc6          limit kmfcc6, 0, 1
 kmfcc7          limit kmfcc7, 0, 1
-kmfcc8          limit kmfcc8, 0, 1
-kmfcc9          limit kmfcc9, 0, 1
-kmfcc10         limit kmfcc10, 0, 1
-kmfcc11         limit kmfcc11, 0, 1
-kmfcc12         limit kmfcc12, 0, 1
-kmfcc13         limit kmfcc13, 0, 1
-kmfcc14         limit kmfcc14, 0, 1
-kmfcc15         limit kmfcc15, 0, 1
-kmfcc16         limit kmfcc16, 0, 1
-kmfcc17         limit kmfcc17, 0, 1
-kmfcc18         limit kmfcc18, 0, 1
-kmfcc19         limit kmfcc19, 0, 1
-kmfcc20         limit kmfcc20, 0, 1
-kmfcc21         limit kmfcc21, 0, 1
-kmfcc22         limit kmfcc22, 0, 1
-kmfcc23         limit kmfcc23, 0, 1
-kmfcc24         limit kmfcc24, 0, 1
-kmfcc25         limit kmfcc25, 0, 1
-kmfcc26         limit kmfcc26, 0, 1
-kmfcc27         limit kmfcc27, 0, 1
-kmfcc28         limit kmfcc28, 0, 1
-kmfcc29         limit kmfcc29, 0, 1
-kmfcc30         limit kmfcc30, 0, 1
-kmfcc31         limit kmfcc31, 0, 1
 
 ; ***************
 ; return features
-
-chnset kmfccdiff,   "mfccdiff"
 
 chnset kmfcc0,      "mfcc0"
 chnset kmfcc1,      "mfcc1"
@@ -111,27 +50,3 @@ chnset kmfcc4,      "mfcc4"
 chnset kmfcc5,      "mfcc5"
 chnset kmfcc6,      "mfcc6"
 chnset kmfcc7,      "mfcc7"
-chnset kmfcc8,      "mfcc8"
-chnset kmfcc9,      "mfcc9"
-chnset kmfcc10,     "mfcc10"
-chnset kmfcc11,     "mfcc11"
-chnset kmfcc12,     "mfcc12"
-chnset kmfcc13,     "mfcc13"
-chnset kmfcc14,     "mfcc14"
-chnset kmfcc15,     "mfcc15"
-chnset kmfcc16,     "mfcc16"
-chnset kmfcc17,     "mfcc17"
-chnset kmfcc18,     "mfcc18"
-chnset kmfcc19,     "mfcc19"
-chnset kmfcc20,     "mfcc20"
-chnset kmfcc21,     "mfcc21"
-chnset kmfcc22,     "mfcc22"
-chnset kmfcc23,     "mfcc23"
-chnset kmfcc24,     "mfcc24"
-chnset kmfcc25,     "mfcc25"
-chnset kmfcc26,     "mfcc26"
-chnset kmfcc27,     "mfcc27"
-chnset kmfcc28,     "mfcc28"
-chnset kmfcc29,     "mfcc29"
-chnset kmfcc30,     "mfcc30"
-chnset kmfcc31,     "mfcc31"
