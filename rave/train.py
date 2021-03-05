@@ -34,10 +34,6 @@ def args():
     return parser.parse_args()
 
 
-def mean_reward_stopper(trial_id, result):
-    return result["episode_reward_mean"] / result["episode_len_mean"] > 0.99
-
-
 def train(config: dict, checkpoint_path: str = None):
     ray.init(local_mode=config["ray"]["local_mode"])
 
@@ -87,7 +83,6 @@ def train(config: dict, checkpoint_path: str = None):
     analysis = ray.tune.run(
         sac.SACTrainer,
         config=agent_config,
-        stop=mean_reward_stopper,
         local_dir=RAY_RESULTS_DIR,
         checkpoint_at_end=config["agent"]["checkpoint_at_end"],
         checkpoint_freq=config["agent"]["checkpoint_freq"],
