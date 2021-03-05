@@ -1,12 +1,12 @@
 {
     "input": "aAnalyserInput",
     "output_channels": [
-        "centroid",
-        "spread",
-        "skewness",
-        "kurtosis",
-        "flatness",
-        "crest",
-        "flux"
+        "kcentroid_l",
+        "kspread_l",
+        "kskewness_l",
+        "kurtosis_l",
+        "kflatness_l",
+        "kcrest_l",
+        "kflux_l"
     ]
 }

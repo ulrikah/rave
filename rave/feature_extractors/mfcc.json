@@ -1,13 +1,13 @@
 {
     "input": "aAnalyserInput",
     "output_channels": [
-        "mfcc0",
-        "mfcc1",
-        "mfcc2",
-        "mfcc3",
-        "mfcc4",
-        "mfcc5",
-        "mfcc6",
-        "mfcc7"
+        "kmfcc0",
+        "kmfcc1",
+        "kmfcc2",
+        "kmfcc3",
+        "kmfcc4",
+        "kmfcc5",
+        "kmfcc6",
+        "kmfcc7"
     ]
 }

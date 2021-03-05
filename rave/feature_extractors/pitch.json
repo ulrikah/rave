@@ -1,4 +1,4 @@
 {
     "input": "aAnalyserInput",
-    "output_channels": ["pitch"]
+    "output_channels": ["kpitch_n"]
 }
