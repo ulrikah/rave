@@ -10,14 +10,12 @@ class Musician:
     This class represents a virtual musician as a continous stream of OSC messages simulating live input
     """
 
-    def __init__(self, analyser: Analyser, use_system_default=True):
-        if use_system_default:
-            input_device = LIVE
-        else:
-            input_device_index = self.choose_audio_device()
-            input_device = f"adc{input_device_index}"
+    def __init__(self, analyser: Analyser, input_source=None, duration=10):
+        if input_source is None:
+            input_source_index = self.choose_audio_device()
+            input_source = f"adc{input_source_index}"
         self.analyser = analyser
-        self.sound = Sound(input_device, NO_SOUND, duration=10)
+        self.sound = Sound(input_source, NO_SOUND, duration=duration)
 
     @staticmethod
     def list_audio_devices():
@@ -41,11 +39,12 @@ class Musician:
         )
         csd_file = self.sound.prepare_to_render(analyser=self.analyser)
         self.sound.stream()
+        return
 
 
 def main():
     a = Analyser(["rms"], osc_route="/rave/source/features", audio_to_analyse="aOut")
-    m = Musician(analyser=a)
+    m = Musician(input_device=LIVE, analyser=a)
     m.start()
     print("Performance done")
 

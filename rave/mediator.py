@@ -24,11 +24,11 @@ class Mediator:
             self.run()
 
     def add_source_features(self, address, *features):
-        print(address, *features)
+        # print(address, *features)
         self.source_q.put(features)
 
     def add_target_features(self, address, *features):
-        print(address, *features)
+        # print(address, *features)
         self.target_q.put(features)
 
     def get_features(self):

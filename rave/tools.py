@@ -10,7 +10,7 @@ import glob
 import sys
 
 
-def k_to_sec(ksmps=64, sr=44100):
+def sec_per_k(ksmps=64, sr=44100):
     """How many seconds are there in 1 k with sample rate sr?"""
     return ksmps / sr
 

@@ -6,7 +6,7 @@ import numpy as np
 from rave.effect import Effect
 from rave.analyser import Analyser
 from rave.template_handler import TemplateHandler
-from rave.tools import timestamp, get_duration, k_to_sec
+from rave.tools import timestamp, get_duration
 from rave.player import Player
 from rave.constants import (
     LIVE,
@@ -34,11 +34,13 @@ class Sound:
         duration: sets the render duration for LIVE input. Duration is dictacted by the length of the audio file for static files
     """
 
-    def __init__(self, input_source, output=None, loop=True, duration=10):
+    def __init__(self, input_source, output=None, loop=True, duration=None):
         if input_source == LIVE:
             self.save_to = LIVE
             self.input = LIVE
-            self.duration = duration  # NOTE: unsure how to better specify this
+            self.duration = (
+                duration if duration is not None else 10
+            )  # NOTE: unsure how to better specify this
         else:
             if os.path.isfile(input_source):
                 abs_path = os.path.abspath(input_source)
@@ -48,7 +50,11 @@ class Sound:
                 raise IOError(f"Couldn't find file {input_source}")
             self.save_to = os.path.splitext(os.path.basename(abs_path))[0]
             self.input = abs_path
-            _, _, self.duration = self.get_properties(abs_path)
+            _, _, file_duration = self.get_properties(abs_path)
+            if duration is not None and duration <= file_duration:
+                self.duration = duration
+            else:
+                self.duration = file_duration
 
         if output is None or output is NO_SOUND:
             self.output = NO_SOUND
@@ -109,8 +115,6 @@ class Sound:
         TODO: use a separate thread for this process. Consider writing the CSD to disk
         and launching it in a separate process
         """
-        if self.input is not LIVE:
-            raise ValueError("This method should not be called when using static input")
         if self.csd is None:
             raise ValueError("This method is called prior to CSD instantiation")
         self.player = Player(debug=True)
