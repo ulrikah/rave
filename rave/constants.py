@@ -30,7 +30,8 @@ EFFECT_BASE = f"base{CSD_JINJA_SUFFIX}"
 
 # analyser
 ANALYSER_BASE = f"base_analyser{CSD_JINJA_SUFFIX}"
-
+OSC_ADDRESS = "127.0.0.1"
+OSC_PORT = 4321
 
 if __name__ == "__main__":
     assert os.path.isdir(AUDIO_INPUT_DIR)

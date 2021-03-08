@@ -4,11 +4,12 @@ from queue import SimpleQueue
 from threading import Thread
 
 from rave.osc_server import OscServer
+from rave.constants import OSC_ADDRESS, OSC_PORT
 
 
 class Mediator:
     def __init__(self, run=True):
-        self.osc_server = OscServer()
+        self.osc_server = OscServer(ip_adress=OSC_ADDRESS, port=OSC_PORT)
         self.source_q = SimpleQueue()
         self.target_q = SimpleQueue()
 
@@ -23,9 +24,11 @@ class Mediator:
             self.run()
 
     def add_source_features(self, address, *features):
+        print(address, *features)
         self.source_q.put(features)
 
     def add_target_features(self, address, *features):
+        print(address, *features)
         self.target_q.put(features)
 
     def get_features(self):
@@ -65,3 +68,7 @@ class Mediator:
             self.osc_server_thread = None
         else:
             raise Exception("Attempting to terminate thread before it started")
+
+
+if __name__ == "__main__":
+    mediator = Mediator()
