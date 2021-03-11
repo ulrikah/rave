@@ -87,6 +87,7 @@ def inference(
         "live_mode": config["env"]["live_mode"],
         "eval_interval": None,
         "render_to_dac": render_to_dac,
+        "debug": config["env"]["debug"],
     }
 
     agent_config = {

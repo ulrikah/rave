@@ -12,6 +12,7 @@ target = "amen.wav"
 metric = "l2_normalized"
 live_mode = false
 eval_interval = 1
+debug = true
 
 [agent]
 checkpoint_freq = 100

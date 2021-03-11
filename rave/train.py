@@ -46,6 +46,7 @@ def train(config: dict, checkpoint_path: str = None):
         "live_mode": config["env"]["live_mode"],
         "eval_interval": config["env"]["eval_interval"],
         "render_to_dac": False,
+        "debug": config["env"]["debug"],
     }
 
     agent_config = {

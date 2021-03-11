@@ -96,11 +96,11 @@ class Sound:
 
         save_to_path = os.path.join(
             CSD_DIR,
-            f"{self.save_to}_{timestamp()}.csd",
+            f"{timestamp()}_{self.save_to}.csd",
         )
         save_to_debug_path = os.path.join(
             AUDIO_OUTPUT_DIR,
-            f"{self.save_to}_debug_{timestamp()}.wav",
+            f"{timestamp()}_{self.save_to}_debug.wav",
         )
         self.csd = base.compile(
             input=f"-i{self.input}",

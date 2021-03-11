@@ -77,7 +77,6 @@ class CrossAdaptiveEnv(gym.Env):
         self.source.prepare_to_render(
             effect=self.effect, analyser=analyser, add_debug_channels=self.debug
         )
-
         self.target.prepare_to_render(
             effect=None, analyser=analyser, add_debug_channels=self.debug
         )
@@ -200,14 +199,14 @@ class CrossAdaptiveEnv(gym.Env):
         if self.render_to_dac:
             output = DAC
         else:
-            output = f"{self.effect.name}_render_{timestamp()}_{os.path.basename(self.source_input)}"
+            output = f"{timestamp()}_render_{self.effect.name}_{os.path.basename(self.source_input)}"
 
         source = Sound(
             self.source_input,
             output=output,
             loop=False,
         )
-        source.prepare_to_render(effect=self.effect)
+        source.prepare_to_render(effect=self.effect, add_debug_channels=self.debug)
         for action in self.actions:
             mapping = self.action_to_mapping(action)
             done = source.render(mapping=mapping)
