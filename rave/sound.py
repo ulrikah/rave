@@ -78,7 +78,9 @@ class Sound:
             duration = n_frames / frame_rate
             return frame_rate, n_frames, duration
 
-    def prepare_to_render(self, effect: Effect = None, analyser: Analyser = None):
+    def prepare_to_render(
+        self, effect: Effect = None, analyser: Analyser = None, add_debug_channels=False
+    ):
         """
         Prepares the Sound to be rendered by compiling the CSD templates.
 
@@ -92,6 +94,14 @@ class Sound:
         base = TemplateHandler(EFFECT_BASE, template_dir=EFFECT_TEMPLATE_DIR)
         channels = effect.get_csd_channels() if effect is not None else []
 
+        save_to_path = os.path.join(
+            CSD_DIR,
+            f"{self.save_to}_{timestamp()}.csd",
+        )
+        save_to_debug_path = os.path.join(
+            AUDIO_OUTPUT_DIR,
+            f"{self.save_to}_debug_{timestamp()}.wav",
+        )
         self.csd = base.compile(
             input=f"-i{self.input}",
             output=f"-o{self.output}" if self.output != NO_SOUND else self.output,
@@ -102,10 +112,8 @@ class Sound:
             effect=effect_csd,
             analyser=analyser.analyser_csd if analyser is not None else "",
             duration=self.duration,
-        )
-        save_to_path = os.path.join(
-            CSD_DIR,
-            f"{self.save_to}_{timestamp()}.csd",
+            add_debug_channels=add_debug_channels,
+            debug_file_name=save_to_debug_path,
         )
         base.save_to_file(save_to_path)
         return save_to_path

@@ -13,8 +13,12 @@ instr	1
 
 {% for channel in channels %}
     chn_k "{{ channel.name }}", 3
-    chnset {{ channel.value }}, "{{ channel.name }}" ; not sure if the channel should be set on startup
+    chnset {{ channel.value }}, "{{ channel.name }}" ; not sure if the channel value should be set on startup
     k_{{ channel.name}} chnget "{{ channel.name }}"
+
+    {% if add_debug_channels %}
+    chn_k "{{ channel.name }}_debug"    ; normalized effect params in the (0, 1) range
+    {% endif %}
 {% endfor %}
 
     aIn in
@@ -26,6 +30,14 @@ instr	1
 {% endif %}
     {{ analyser }}
     out aOut
+
+    {% if add_debug_channels %}
+
+    {% for ch in channels %}chnget "{{ch.name}}_debug"
+    {% endfor %}
+
+    fout "{{ debug_file_name }}", 14, aIn, aOut{% for ch in channels %}, upsamp("{{ ch.name }}_debug") {% endfor %}
+    {% endif %}
 endin
 
 </CsInstruments>

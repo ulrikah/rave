@@ -28,6 +28,8 @@ CROSS_ADAPTIVE_DEFAULT_CONFIG = {
     "feature_extractors": ["rms", "pitch", "spectral"],
     "live_mode": False,
     "eval_interval": 1,
+    "render_to_dac": False,
+    "debug": False,
 }
 
 
@@ -43,7 +45,9 @@ class CrossAdaptiveEnv(gym.Env):
         self.metric = config["metric"]
         self.live_mode = config["live_mode"]
         self.feature_extractors = config["feature_extractors"]
+        self.feature_extractors = config["feature_extractors"]
         self.render_to_dac = config["render_to_dac"]
+        self.debug = config["debug"]
 
         # how often the model should evaluate
         self.eval_interval = config["eval_interval"]
@@ -70,9 +74,13 @@ class CrossAdaptiveEnv(gym.Env):
             low=0.0, high=1.0, shape=(len(self.effect.parameters),)
         )
 
-        self.source.prepare_to_render(effect=self.effect, analyser=analyser)
+        self.source.prepare_to_render(
+            effect=self.effect, analyser=analyser, add_debug_channels=self.debug
+        )
 
-        self.target.prepare_to_render(effect=None, analyser=analyser)
+        self.target.prepare_to_render(
+            effect=None, analyser=analyser, add_debug_channels=self.debug
+        )
 
         if self.live_mode:
             self.mediator = Mediator()
@@ -94,6 +102,8 @@ class CrossAdaptiveEnv(gym.Env):
                 p.mapping.max_value,
                 p.mapping.skew_factor,
             )
+            if self.debug:
+                mapping[f"{p.name}_debug"] = action[i]
         return mapping
 
     @staticmethod
@@ -204,16 +214,3 @@ class CrossAdaptiveEnv(gym.Env):
             if done:
                 break
         return source.output
-
-
-if __name__ == "__main__":
-    env = CrossAdaptiveEnv()
-
-    N = 10000
-    for i in range(N):
-        action = env.action_space.sample()
-        state, reward, done, _ = env.step(action)
-        if i % 1000 == 0:
-            print(f"\nREWARD: {reward} \n")
-    path = env.render()
-    play_wav(path)
