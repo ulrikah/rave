@@ -48,7 +48,6 @@ def test_osc_route_works():
     assert "OSCsend" in analyser.analyser_csd
     fff = f"\"{'f' * len(analyser.analysis_features)}\""
     assert f'{fff}, {", ".join(analyser.analysis_features)}' in analyser.analyser_csd
-    assert f"kwhen += km" in analyser.analyser_csd
     assert osc_route in analyser.analyser_csd
 
 
