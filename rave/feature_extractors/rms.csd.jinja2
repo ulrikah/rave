@@ -4,7 +4,7 @@ chnset -61, "inputNoisefloor"
 
 ; ***************
 ; amplitude tracking
-    krms            rms {{input}}   ; simple level measure 
+    krms            rms {{input}}   ; simple level measure
     krms            = krms*2
     krms_dB         = dbfsamp(krms)
 

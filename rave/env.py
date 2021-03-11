@@ -134,7 +134,7 @@ class CrossAdaptiveEnv(gym.Env):
         reward = self.calculate_reward(source_features, target_features)
 
         """
-        An episode is either over at the end of every interval (if using this mechanism), 
+        An episode is either over at the end of every interval (if using this mechanism),
         or when the rendering of the source sound is complete. However, we only reset and
         bounce when the source sound is complete
         """

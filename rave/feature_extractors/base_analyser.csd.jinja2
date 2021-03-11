@@ -1,4 +1,4 @@
-{% if osc_route %}    
+{% if osc_route %}
     #define IP_ADDRESS	# "{{osc_address}}" #
     #define PORT 		# {{osc_port}} #
 {% endif %}
@@ -16,7 +16,7 @@
     ; END globals
 
 ; ***************
-; define the input audio to use in analysis 
+; define the input audio to use in analysis
 aAnalyserInput = {{input}}
 
 
@@ -33,7 +33,7 @@ aAnalyserInput = {{input}}
 {% if osc_route %}
 
 ; ***************
-; metro 
+; metro
 
 kwhen           init 0
 kwhen           += 1

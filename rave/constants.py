@@ -1,9 +1,9 @@
 import os
 
 """
-NOTE: 
-For some reason, ray fails when paths are relative. 
-The current fix is to append the project ROOT path to all other dir paths, 
+NOTE:
+For some reason, ray fails when paths are relative.
+The current fix is to append the project ROOT path to all other dir paths,
 but there has to be something better
 """
 PROJECT_ROOT = os.getcwd()
