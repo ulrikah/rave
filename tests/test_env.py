@@ -83,11 +83,14 @@ def test_debug_mode_defines_debug_channels():
     config = CROSS_ADAPTIVE_DEFAULT_CONFIG
     config["debug"] = True
     env = CrossAdaptiveEnv(config)
+    action = env.action_space.sample()
+    env.step(action)
+    source = env.render()
     debug_channels = list(
         map(lambda param: f"{param.name}_debug", env.effect.parameters)
     )
     for ch in debug_channels:
-        assert f'chn_k "{ch}"' in env.source.csd
+        assert f'chn_k "{ch}"' in source.csd
 
 
 def test_non_debug_mode_does_not_define_debug_channels():
@@ -97,8 +100,12 @@ def test_non_debug_mode_does_not_define_debug_channels():
     debug_channels = list(
         map(lambda param: f"{param.name}_debug", env.effect.parameters)
     )
+    action = env.action_space.sample()
+    env.step(action)
+    source = env.render()
+    debug_values = source.player.get_channels(debug_channels)
     for ch in debug_channels:
-        assert f'chn_k "{ch}"' not in env.source.csd
+        assert f'chn_k "{ch}"' not in source.csd
 
 
 def test_debug_mode_sets_debug_channels():
@@ -111,7 +118,8 @@ def test_debug_mode_sets_debug_channels():
 
     action = env.action_space.sample()
     env.step(action)
-    debug_values = env.source.player.get_channels(debug_channels)
+    source = env.render()
+    debug_values = source.player.get_channels(debug_channels)
     for v in debug_values:
         assert 0.0 < v < 1.0
 
@@ -123,6 +131,10 @@ def test_debug_mode_renders_channels_to_debug_wave_file():
     debug_channels = list(
         map(lambda param: f"{param.name}_debug", env.effect.parameters)
     )
-    assert "fout" in env.source.csd
+    action = env.action_space.sample()
+    env.step(action)
+    source = env.render()
+    debug_values = source.player.get_channels(debug_channels)
+    assert "fout" in source.csd
     for ch in debug_channels:
-        assert f"upsamp({ch})"
+        assert f"upsamp(k_{ch})" in source.csd

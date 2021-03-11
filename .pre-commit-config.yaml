@@ -12,7 +12,7 @@ repos:
       hooks:
           - id: pytest-check
             name: Run tests
-            entry: pytest
+            entry: pytest --disable-warnings
             language: system
             pass_filenames: false
             always_run: true

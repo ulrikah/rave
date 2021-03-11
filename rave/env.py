@@ -74,12 +74,8 @@ class CrossAdaptiveEnv(gym.Env):
             low=0.0, high=1.0, shape=(len(self.effect.parameters),)
         )
 
-        self.source.prepare_to_render(
-            effect=self.effect, analyser=analyser, add_debug_channels=self.debug
-        )
-        self.target.prepare_to_render(
-            effect=None, analyser=analyser, add_debug_channels=self.debug
-        )
+        self.source.prepare_to_render(effect=self.effect, analyser=analyser)
+        self.target.prepare_to_render(effect=None, analyser=analyser)
 
         if self.live_mode:
             self.mediator = Mediator()
@@ -212,4 +208,4 @@ class CrossAdaptiveEnv(gym.Env):
             done = source.render(mapping=mapping)
             if done:
                 break
-        return source.output
+        return source
