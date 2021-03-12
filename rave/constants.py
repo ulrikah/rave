@@ -19,6 +19,7 @@ RAY_RESULTS_DIR = os.path.join(PROJECT_ROOT, "rave/ray_results")
 LIVE = "adc"
 NO_SOUND = "--nosound"
 DAC = "dac"
+ADC = "adc"
 SAMPLE_RATE = 44100
 KSMPS = 64
 WAVE_FILE_FLAG = "-W"  # write audio output as WAVE file instead of AIFF

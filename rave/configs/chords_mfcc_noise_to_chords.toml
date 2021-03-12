@@ -10,7 +10,6 @@ feature_extractors = ["rms", "mfcc"]
 source = "noise.wav"
 target = "chords_5s.wav"
 metric = "l2_normalized"
-live_mode = false
 eval_interval = 1
 debug = true
 

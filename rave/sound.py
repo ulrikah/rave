@@ -59,8 +59,8 @@ class Sound:
         if output is None or output is NO_SOUND:
             self.output = NO_SOUND
             self.flags = ""
-        elif output is DAC:
-            self.output = DAC
+        elif output.startswith(DAC):
+            self.output = output
             self.flags = ""
         else:
             self.output = os.path.join(AUDIO_OUTPUT_DIR, output)

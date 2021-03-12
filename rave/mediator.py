@@ -1,17 +1,19 @@
 import numpy as np
 import time
-from queue import SimpleQueue
+import queue
 from threading import Thread
 
 from rave.osc_server import OscServer
+from rave.osc_client import OscClient
 from rave.constants import OSC_ADDRESS, OSC_PORT
 
 
 class Mediator:
     def __init__(self, run=True):
         self.osc_server = OscServer(ip_adress=OSC_ADDRESS, port=OSC_PORT)
-        self.source_q = SimpleQueue()
-        self.target_q = SimpleQueue()
+        self.osc_client = OscClient(ip_adress=OSC_ADDRESS, port=OSC_PORT)
+        self.source_q = queue.SimpleQueue()
+        self.target_q = queue.SimpleQueue()
 
         self.osc_server.register_handler(
             "/rave/source/features", self.add_source_features
@@ -35,21 +37,28 @@ class Mediator:
         """
         Pops an array of features off both queues and converts them to numpy arrays
         """
-        return np.array(self.get_source_features()), np.array(
-            self.get_target_features()
-        )
+        source_features = self.get_source_features()
+        target_features = self.get_target_features()
+        return source_features, target_features
 
     def get_source_features(self):
-        if not self.source_q.empty():
+        try:
             return self.source_q.get()
-        else:
-            raise IOError("Source queue doesn't contain any more features")
+        except queue.Empty:
+            return None
 
     def get_target_features(self):
-        if not self.target_q.empty():
+        try:
             return self.target_q.get()
-        else:
-            raise IOError("Target queue doesn't contain any more features")
+        except queue.Empty:
+            return None
+
+    def send_effect_mapping(self, mapping):
+        import pdb
+
+        pdb.set_trace()
+        # TODO: convert the mapping dict into a format that can be received over OSC
+        self.osc_client.send_message("rave/mapping", mapping)
 
     def clear(self):
         for q in [self.source_q, self.target_q]:
@@ -68,7 +77,3 @@ class Mediator:
             self.osc_server_thread = None
         else:
             raise Exception("Attempting to terminate thread before it started")
-
-
-if __name__ == "__main__":
-    mediator = Mediator()

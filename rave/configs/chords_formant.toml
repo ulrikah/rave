@@ -10,7 +10,6 @@ feature_extractors = ["rms", "pitch", "spectral"]
 source = "chords_5s.wav"
 target = "digi_forest_5s.wav"
 metric = "l2_normalized"
-live_mode = false
 eval_interval = 1
 debug = true
 
