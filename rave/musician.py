@@ -1,8 +1,37 @@
 from rave.analyser import Analyser
 from rave.sound import Sound
-from rave.constants import LIVE, DAC, NO_SOUND
+from rave.constants import LIVE, DAC, ADC, NO_SOUND
+from rave.config import parse_config_file
+from rave.effect import Effect
 
 import subprocess
+import argparse
+
+
+def arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--config",
+        dest="config_file",
+        action="store",
+        required=True,
+        help="Path to a config file",
+    )
+    parser.add_argument(
+        "--target",
+        dest="is_target",
+        action="store_true",
+        default=False,
+        help="Whether or not this musician represents the target",
+    )
+    parser.add_argument(
+        "--live",
+        dest="live_mode",
+        action="store_true",
+        default=False,
+        help="Enable live input from adc",
+    )
+    return parser.parse_args()
 
 
 class Musician:
@@ -10,22 +39,39 @@ class Musician:
     This class represents a virtual musician as a continous stream of OSC messages simulating live input
     """
 
-    def __init__(self, analyser: Analyser, input_source=None, duration=10):
+    def __init__(
+        self,
+        analyser: Analyser,
+        effect: Effect = None,
+        input_source: str = None,
+        output_source: str = None,
+        duration=10,
+        is_target=False,
+    ):
         if input_source is None:
-            input_source_index = self.choose_audio_device()
-            input_source = f"adc{input_source_index}"
+            input_source_index = self.choose_audio_device(
+                "🎤 Choose the index of the INPUT device you want to use: "
+            )
+            input_source = f"{ADC}{input_source_index}"
+        if output_source is None:
+            output_source_index = self.choose_audio_device(
+                "🎤 Choose the index of the OUTPUT device you want to use: "
+            )
+            output_source = f"{DAC}{output_source_index}"
         self.analyser = analyser
-        self.sound = Sound(input_source, NO_SOUND, duration=duration)
+        self.effect = effect
+        self.sound = Sound(input_source, output_source, duration=duration)
+        self.is_target = is_target
 
     @staticmethod
     def list_audio_devices():
-        subprocess.call(["csound", "--devices=in", "-m", "128"])
+        subprocess.call(["csound", "--devices", "-m", "128"])
         return
 
-    def choose_audio_device(self):
+    def choose_audio_device(self, message):
         self.list_audio_devices()
         print("\n")
-        device = input("🎤 Choose the index of the input device you want to use: ")
+        device = input(message)
         print("\n")
         return device
 
@@ -37,16 +83,48 @@ class Musician:
         ╩═╝╩ ╚╝ ╚═╝
         """
         )
-        csd_file = self.sound.prepare_to_render(analyser=self.analyser)
-        self.sound.stream()
-        return
+        csd_file = self.sound.prepare_to_render(
+            effect=self.effect,
+            analyser=self.analyser,
+            receive_mapping_over_osc=not self.is_target,
+        )
+        return self.sound.stream()
 
 
 def main():
-    a = Analyser(["rms"], osc_route="/rave/source/features", audio_to_analyse="aOut")
-    m = Musician(input_device=LIVE, analyser=a)
-    m.start()
-    print("Performance done")
+    args = arguments()
+    config = parse_config_file(args.config_file)
+
+    # NOTE: at the current moment, this was the index of Blackhole,
+    # a virtual soundcard. this functions as a sink for all audio
+    BLACKHOLE = "dac2"
+
+    if args.is_target:
+        osc_route = "/rave/target/features"
+        # NOTE: temporary hack to loop the target sound
+        # input_source = config["env"]["target"]
+        input_source = "amen_loop.wav"
+        output_source = BLACKHOLE
+        effect = None
+    else:
+        osc_route = "/rave/source/features"
+        input_source = config["env"]["source"]
+        effect = Effect(config["env"]["effect"])
+        output_source = DAC
+
+    if args.live_mode:
+        input_source = LIVE
+
+    analyser = Analyser(config["env"]["feature_extractors"], osc_route=osc_route)
+    musician = Musician(
+        analyser,
+        effect=effect,
+        input_source=input_source,
+        output_source=output_source,
+        duration=100,
+        is_target=args.is_target,
+    )
+    musician.start()
 
 
 if __name__ == "__main__":

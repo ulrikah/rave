@@ -13,7 +13,7 @@ from rave.analyser import Analyser
 from rave.sound import Sound
 from rave.mediator import Mediator
 from rave.tools import timestamp, play_wav
-from rave.constants import DAC
+from rave.constants import DAC, DEBUG_SUFFIX
 
 AMEN = "amen_trim.wav"
 NOISE = "noise.wav"
@@ -26,7 +26,6 @@ CROSS_ADAPTIVE_DEFAULT_CONFIG = {
     "source": NOISE,
     "target": AMEN,
     "feature_extractors": ["rms", "pitch", "spectral"],
-    "live_mode": False,
     "eval_interval": 1,
     "render_to_dac": False,
     "debug": False,
@@ -43,7 +42,6 @@ class CrossAdaptiveEnv(gym.Env):
         self.target_input = config["target"]
         self.effect = config["effect"]
         self.metric = config["metric"]
-        self.live_mode = config["live_mode"]
         self.feature_extractors = config["feature_extractors"]
         self.feature_extractors = config["feature_extractors"]
         self.render_to_dac = config["render_to_dac"]
@@ -77,9 +75,6 @@ class CrossAdaptiveEnv(gym.Env):
         self.source.prepare_to_render(effect=self.effect, analyser=analyser)
         self.target.prepare_to_render(effect=None, analyser=analyser)
 
-        if self.live_mode:
-            self.mediator = Mediator()
-
         self.actions = []
         self.rewards = []
         self.source_features = np.zeros(shape=len(self.analysis_features))
@@ -98,7 +93,7 @@ class CrossAdaptiveEnv(gym.Env):
                 p.mapping.skew_factor,
             )
             if self.debug:
-                mapping[f"{p.name}_debug"] = action[i]
+                mapping[f"{p.name}{DEBUG_SUFFIX}"] = action[i]
         return mapping
 
     @staticmethod
@@ -111,6 +106,11 @@ class CrossAdaptiveEnv(gym.Env):
         This mapping trick is an idea borrowed from Jordal (2017) and Walsh (2008).
         """
         return min_value + (max_value - min_value) * np.exp(np.log(x) / skew_factor)
+
+    def get_features(self):
+        source_features = self.source.player.get_channels(self.analysis_features)
+        target_features = self.target.player.get_channels(self.analysis_features)
+        return source_features, target_features
 
     def step(self, action: np.ndarray):
         """
@@ -127,16 +127,9 @@ class CrossAdaptiveEnv(gym.Env):
         source_done = self.source.render(mapping=mapping)
         target_done = self.target.render()
 
-        if self.live_mode:
-            source_features, target_features = self.mediator.get_features()
-        else:
-            source_features = self.source.player.get_channels(self.analysis_features)
-            target_features = self.target.player.get_channels(self.analysis_features)
+        self.source_features, self.target_features = self.get_features()
 
-        self.source_features = source_features
-        self.target_features = target_features
-
-        reward = self.calculate_reward(source_features, target_features)
+        reward = self.calculate_reward(self.source_features, self.target_features)
 
         """
         An episode is either over at the end of every interval (if using this mechanism),
@@ -165,8 +158,6 @@ class CrossAdaptiveEnv(gym.Env):
         return np.concatenate((self.source_features, self.target_features))
 
     def _reset_internal_state(self):
-        if self.live_mode:
-            self.mediator.clear()
         self.actions = []
         self.rewards = []
 
@@ -181,8 +172,6 @@ class CrossAdaptiveEnv(gym.Env):
         return reward
 
     def close(self):
-        if self.live_mode:
-            self.mediator.terminate()
         for sound in [self.source, self.target]:
             if sound.player is not None:
                 sound.player.cleanup()

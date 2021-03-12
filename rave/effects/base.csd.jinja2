@@ -9,21 +9,36 @@ ksmps = {{ ksmps }}
 nchnls = 1
 0dbfs = 1
 
+{% if receive_mapping_over_osc %}
+gihandle OSCinit {{osc_mapping_port}}
+{% endif %}
+
 instr	1
 
-{% for channel in channels %}
-    chn_k "{{ channel.name }}", 3
-    chnset {{ channel.value }}, "{{ channel.name }}" ; not sure if the channel value should be set on startup
-    k_{{ channel.name}} chnget "{{ channel.name }}"
+{# the effect can receive values either over OSC (live) or through channels (training) #}
+{% if receive_mapping_over_osc %}
 
-    {% if add_debug_channels %}
-    chn_k "{{ channel.name }}_debug", 3    ; normalized effect params in the (0, 1) range
-    {% endif %}
-{% endfor %}
+    {% for ch in channels %}
+    k_{{ ch.name }} init {{ ch.value }}
+    {% endfor %}
+    k_ans OSClisten gihandle, "{{osc_mapping_route}}", "{{"f" * channels|length}}" {% for ch in channels %}, k_{{ ch.name }}{% endfor %}
+    printk 0, k_ans
+
+{% else %}
+    {% for channel in channels %}
+        chn_k "{{ channel.name }}", 3
+        chnset {{ channel.value }}, "{{ channel.name }}" ; not sure if the channel value should be set on startup
+        k_{{ channel.name}} chnget "{{ channel.name }}"
+
+        {% if add_debug_channels %}
+        chn_k "{{ channel.name }}{{debug_suffix}}", 3    ; normalized effect params in the (0, 1) range
+        {% endif %}
+    {% endfor %}
+{% endif %}
 
     aIn in
 {% if effect is not none %}
-    {{ effect }}
+{{ effect }}
 {% else %}
     {# analyser uses aOut as input #}
     aOut = aIn
@@ -31,13 +46,14 @@ instr	1
     {{ analyser }}
     out aOut
 
-    {% if add_debug_channels %}
+{% if add_debug_channels %}
 
-    {% for ch in channels %}k_{{ ch.name }}_debug chnget "{{ ch.name }}_debug"
+    {% for ch in channels %}k_{{ ch.name }}{{debug_suffix}} chnget "{{ ch.name }}{{debug_suffix}}"
     {% endfor %}
 
-    fout "{{ debug_file_name }}", 14, aIn, aOut{% for ch in channels %}, upsamp(k_{{ ch.name }}_debug) {% endfor %}
-    {% endif %}
+    fout "{{ debug_file_name }}", 14, aIn, aOut{% for ch in channels %}, upsamp(k_{{ ch.name }}{{debug_suffix}}) {% endfor %}
+{% endif %}
+
 endin
 
 </CsInstruments>

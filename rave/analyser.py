@@ -9,7 +9,7 @@ from rave.constants import (
     CSD_JINJA_SUFFIX,
     CSD_JINJA_GLOBALS_SUFFIX,
     OSC_ADDRESS,
-    OSC_PORT,
+    OSC_FEATURE_PORT,
 )
 
 
@@ -68,7 +68,7 @@ class Analyser:
             global_variables=self.global_variables,
             osc_route=osc_route,
             osc_address=OSC_ADDRESS,
-            osc_port=OSC_PORT,
+            osc_port=OSC_FEATURE_PORT,
             osc_channels=self.analysis_features,
         )
         if output_file_path is not None:

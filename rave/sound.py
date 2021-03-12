@@ -11,6 +11,7 @@ from rave.player import Player
 from rave.constants import (
     LIVE,
     NO_SOUND,
+    ADC,
     DAC,
     AUDIO_INPUT_DIR,
     AUDIO_OUTPUT_DIR,
@@ -20,6 +21,9 @@ from rave.constants import (
     SAMPLE_RATE,
     KSMPS,
     WAVE_FILE_FLAG,
+    OSC_MAPPING_PORT,
+    OSC_MAPPING_ROUTE,
+    DEBUG_SUFFIX,
 )
 
 
@@ -35,9 +39,9 @@ class Sound:
     """
 
     def __init__(self, input_source, output=None, loop=True, duration=None):
-        if input_source == LIVE:
-            self.save_to = LIVE
-            self.input = LIVE
+        if input_source.startswith(ADC):
+            self.save_to = input_source
+            self.input = input_source
             self.duration = (
                 duration if duration is not None else 10
             )  # NOTE: unsure how to better specify this
@@ -59,8 +63,8 @@ class Sound:
         if output is None or output is NO_SOUND:
             self.output = NO_SOUND
             self.flags = ""
-        elif output is DAC:
-            self.output = DAC
+        elif output.startswith(DAC):
+            self.output = output
             self.flags = ""
         else:
             self.output = os.path.join(AUDIO_OUTPUT_DIR, output)
@@ -79,7 +83,11 @@ class Sound:
             return frame_rate, n_frames, duration
 
     def prepare_to_render(
-        self, effect: Effect = None, analyser: Analyser = None, add_debug_channels=False
+        self,
+        effect: Effect = None,
+        analyser: Analyser = None,
+        add_debug_channels=False,
+        receive_mapping_over_osc=False,
     ):
         """
         Prepares the Sound to be rendered by compiling the CSD templates.
@@ -87,6 +95,8 @@ class Sound:
         Args:
             effect: which Effect to apply, potentially None if no effect is desired
             analyser: an Analyser object, potentially None if the Sound doesn't need to be analysed
+            add_debug_channels: if True, renders a multichannel audio file with control channels upsampled to audio rate
+            receive_mapping_over_osc: if True, receives mapping over OSC instead of using channels
         """
 
         effect_csd = effect.to_csd() if effect is not None else None
@@ -100,7 +110,7 @@ class Sound:
         )
         save_to_debug_path = os.path.join(
             AUDIO_OUTPUT_DIR,
-            f"{timestamp()}_{self.save_to}_debug.wav",
+            f"{timestamp()}_{self.save_to}{DEBUG_SUFFIX}.wav",
         )
         self.csd = base.compile(
             input=f"-i{self.input}",
@@ -114,6 +124,10 @@ class Sound:
             duration=self.duration,
             add_debug_channels=add_debug_channels,
             debug_file_name=save_to_debug_path,
+            receive_mapping_over_osc=receive_mapping_over_osc,
+            osc_mapping_port=OSC_MAPPING_PORT,
+            osc_mapping_route=OSC_MAPPING_ROUTE,
+            debug_suffix=DEBUG_SUFFIX,
         )
         base.save_to_file(save_to_path)
         return save_to_path

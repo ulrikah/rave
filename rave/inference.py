@@ -10,6 +10,9 @@ from rave.env import CrossAdaptiveEnv, CROSS_ADAPTIVE_DEFAULT_CONFIG
 from rave.effect import Effect
 from rave.metrics import metric_from_name
 from rave.config import parse_config_file
+from rave.musician import Musician
+from rave.analyser import Analyser
+from rave.mediator import Mediator
 
 
 def args():
@@ -63,6 +66,7 @@ def inference(
     source_sound: str = None,
     target_sound: str = None,
     render_to_dac=False,
+    live_mode=False,
 ):
     """
     Runs inference on a pretrained agent
@@ -84,7 +88,6 @@ def inference(
         "feature_extractors": config["env"]["feature_extractors"],
         "source": source_sound if source_sound else config["env"]["source"],
         "target": target_sound if target_sound else config["env"]["target"],
-        "live_mode": config["env"]["live_mode"],
         "eval_interval": None,
         "render_to_dac": render_to_dac,
         "debug": config["env"]["debug"],
@@ -110,32 +113,34 @@ def inference(
     }
 
     env = CrossAdaptiveEnv(env_config)
-
     agent = sac.SACTrainer(config=agent_config)
     agent.restore(checkpoint_path)
 
+    if live_mode:
+        run_live_inference(agent, env)
+
+
+def run_live_inference(
+    agent: Trainer,
+    env: CrossAdaptiveEnv,
+):
+    mediator = Mediator()
+
     episode_index = 0
-    episode_reward = []
-    done = False
-    obs = env.reset()
-    while episode_index < 5:
+    while episode_index < 10000:
+        source_features, target_features = mediator.get_features()
+        if source_features is None or target_features is None:
+            continue
+        obs = np.concatenate((source_features, target_features))
         action = agent.compute_action(obs)
-        # TODO: inference shouldn't need to calculate reward
-        obs, reward, done, info = env.step(action)
-        episode_reward.append(reward)
-        if done:
-            episode_index += 1
-            print("\n" * 5)
-            print("DOOOOONE", episode_index)
-            print("mean episode reward:", np.mean(episode_reward))
-            print("\n" * 5)
-            episode_reward = []
+        mapping = env.action_to_mapping(action)
+        mediator.send_effect_mapping(mapping)
+
+    mediator.terminate()
 
 
 if __name__ == "__main__":
     args = args()
-    print(args)
-
     config = parse_config_file(args.config_file)
     inference(
         config,
@@ -143,4 +148,5 @@ if __name__ == "__main__":
         source_sound=args.source_sound,
         target_sound=args.target_sound,
         render_to_dac=args.render_to_dac,
+        live_mode=True,
     )

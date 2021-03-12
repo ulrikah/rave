@@ -2,6 +2,7 @@ import pytest
 
 from rave.env import CrossAdaptiveEnv, CROSS_ADAPTIVE_DEFAULT_CONFIG
 from rave.effect import Effect
+from rave.constants import DEBUG_SUFFIX
 
 
 def test_linear_mapping():
@@ -87,7 +88,7 @@ def test_debug_mode_defines_debug_channels():
     env.step(action)
     source = env.render()
     debug_channels = list(
-        map(lambda param: f"{param.name}_debug", env.effect.parameters)
+        map(lambda param: f"{param.name}{DEBUG_SUFFIX}", env.effect.parameters)
     )
     for ch in debug_channels:
         assert f'chn_k "{ch}"' in source.csd
@@ -98,7 +99,7 @@ def test_non_debug_mode_does_not_define_debug_channels():
     config["debug"] = False
     env = CrossAdaptiveEnv(config)
     debug_channels = list(
-        map(lambda param: f"{param.name}_debug", env.effect.parameters)
+        map(lambda param: f"{param.name}{DEBUG_SUFFIX}", env.effect.parameters)
     )
     action = env.action_space.sample()
     env.step(action)
@@ -113,7 +114,7 @@ def test_debug_mode_sets_debug_channels():
     config["debug"] = True
     env = CrossAdaptiveEnv(config)
     debug_channels = list(
-        map(lambda param: f"{param.name}_debug", env.effect.parameters)
+        map(lambda param: f"{param.name}{DEBUG_SUFFIX}", env.effect.parameters)
     )
 
     action = env.action_space.sample()
@@ -129,7 +130,7 @@ def test_debug_mode_renders_channels_to_debug_wave_file():
     config["debug"] = True
     env = CrossAdaptiveEnv(config)
     debug_channels = list(
-        map(lambda param: f"{param.name}_debug", env.effect.parameters)
+        map(lambda param: f"{param.name}{DEBUG_SUFFIX}", env.effect.parameters)
     )
     action = env.action_space.sample()
     env.step(action)

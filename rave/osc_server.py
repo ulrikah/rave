@@ -13,13 +13,11 @@ class OscServer:
         self.dispatcher = Dispatcher()
         self.server = None
 
-    def register_handler(
-        self, route: str, handler_function: FunctionType, default=False
-    ):
-        if default:
-            self.dispatcher.set_default_handler(handler_function)
-        else:
-            self.dispatcher.map(route, handler_function)
+    def register_default_handler(self, handler_function: FunctionType):
+        self.dispatcher.set_default_handler(handler_function)
+
+    def register_handler(self, route: str, handler_function: FunctionType):
+        self.dispatcher.map(route, handler_function)
 
     def terminate(self):
         self.server.shutdown()
@@ -43,4 +41,5 @@ if __name__ == "__main__":
 
     server = OscServer()
     server.register_handler("/rave/features", features_handler)
+    server.register_default_handler(log_handler)
     server.serve()
