@@ -38,6 +38,8 @@ OSC_ADDRESS = "127.0.0.1"
 OSC_FEATURE_PORT = 4321
 OSC_MAPPING_PORT = 1234
 OSC_MAPPING_ROUTE = "/rave/mapping"
+OSC_SOURCE_FEATURES_ROUTE = "/rave/source/features"
+OSC_TARGET_FEATURES_ROUTE = "/rave/target/features"
 
 if __name__ == "__main__":
     assert os.path.isdir(AUDIO_INPUT_DIR)

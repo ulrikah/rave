@@ -1,6 +1,13 @@
 from rave.analyser import Analyser
 from rave.sound import Sound
-from rave.constants import LIVE, DAC, ADC, NO_SOUND
+from rave.constants import (
+    LIVE,
+    DAC,
+    ADC,
+    NO_SOUND,
+    OSC_TARGET_FEATURES_ROUTE,
+    OSC_SOURCE_FEATURES_ROUTE,
+)
 from rave.config import parse_config_file
 from rave.effect import Effect
 
@@ -100,14 +107,14 @@ def main():
     BLACKHOLE = "dac2"
 
     if args.is_target:
-        osc_route = "/rave/target/features"
+        osc_route = OSC_TARGET_FEATURES_ROUTE
         # NOTE: temporary hack to loop the target sound
         # input_source = config["env"]["target"]
         input_source = "amen_loop.wav"
         output_source = BLACKHOLE
         effect = None
     else:
-        osc_route = "/rave/source/features"
+        osc_route = OSC_SOURCE_FEATURES_ROUTE
         input_source = config["env"]["source"]
         effect = Effect(config["env"]["effect"])
         output_source = DAC

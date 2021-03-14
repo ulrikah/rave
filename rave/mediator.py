@@ -10,6 +10,8 @@ from rave.constants import (
     OSC_FEATURE_PORT,
     OSC_MAPPING_PORT,
     OSC_MAPPING_ROUTE,
+    OSC_SOURCE_FEATURES_ROUTE,
+    OSC_TARGET_FEATURES_ROUTE,
     DEBUG_SUFFIX,
 )
 
@@ -18,14 +20,14 @@ class Mediator:
     def __init__(self, run=True, monitor=False):
         self.osc_server = OscServer(ip_adress=OSC_ADDRESS, port=OSC_FEATURE_PORT)
         self.osc_client = OscClient(ip_adress=OSC_ADDRESS, port=OSC_MAPPING_PORT)
-        self.source_q = queue.SimpleQueue()
-        self.target_q = queue.SimpleQueue()
+        self.source_q = queue.LifoQueue()
+        self.target_q = queue.LifoQueue()
 
         self.osc_server.register_handler(
-            "/rave/source/features", self.add_source_features
+            OSC_SOURCE_FEATURES_ROUTE, self.add_source_features
         )
         self.osc_server.register_handler(
-            "/rave/target/features", self.add_target_features
+            OSC_TARGET_FEATURES_ROUTE, self.add_target_features
         )
         self.osc_server_thread = None
         self.monitor = monitor
@@ -95,7 +97,3 @@ class Mediator:
             self.osc_server_thread = None
         else:
             raise Exception("Attempting to terminate thread before it started")
-
-
-if __name__ == "__main__":
-    mediator = Mediator(monitor=True)
