@@ -39,9 +39,7 @@ def test_mediator_uses_lifo_queue_of_size_1():
 def test_mediator_receives_values_from_musician():
     dur_s = get_duration(INPUT_SOURCE)
     dur_k = round(k_per_sec(KSMPS, SAMPLE_RATE) * dur_s)
-    analyser = Analyser(
-        ["rms", "mfcc"], osc_route=OSC_SOURCE_FEATURES_ROUTE, audio_to_analyse="aOut"
-    )
+    analyser = Analyser(["rms", "mfcc"], osc_route=OSC_SOURCE_FEATURES_ROUTE)
     mediator = Mediator(run=False)
     effect = Effect("bandpass")
     musician = Musician(

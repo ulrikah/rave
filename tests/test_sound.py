@@ -5,7 +5,10 @@ from rave.effect import Effect
 from rave.analyser import Analyser
 
 
-def test_dry_and_wet_are_not_the_same():
+def test_dry_and_wet_yield_the_same_features():
+    """
+    Design choice as the analyser module analyses the dry signal
+    """
     amen = "amen_trim.wav"
     feature_extractors = ["rms"]
     analyser = Analyser(feature_extractors)
@@ -30,9 +33,9 @@ def test_dry_and_wet_are_not_the_same():
             wet.render()
             dry_chans = dry.player.get_channels(analysis_channels)
             wet_chans = wet.player.get_channels(analysis_channels)
-            assert not np.array_equal(
+            assert np.array_equal(
                 dry_chans, wet_chans
-            ), f"Dry and wet should not be equal for {effect_name}"
+            ), f"Dry and wet should be equal for {effect_name}"
 
 
 def test_two_dry_signals_yield_the_same_features():

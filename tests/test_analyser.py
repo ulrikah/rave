@@ -53,9 +53,10 @@ def test_osc_route_works():
 
 def test_feature_extractors_output_something():
     feature_extractors = ["pitch", "spectral", "mfcc"]
+    audio_to_analyse = "aSig"
     for fe in feature_extractors:
         # the other extractors depend on RMS for now
-        analyser = Analyser(["rms", fe])
+        analyser = Analyser(["rms", fe], audio_to_analyse=audio_to_analyse)
         analysis_features = analyser.analysis_features
         orc = f"""
         sr=44100
@@ -64,8 +65,8 @@ def test_feature_extractors_output_something():
         0dbfs=1
 
         instr 1
-        aOut poscil 1.0, 220
-        out aOut
+        {audio_to_analyse} poscil 1.0, 220
+        out {audio_to_analyse}
         {analyser.analyser_csd}
         endin
         """
