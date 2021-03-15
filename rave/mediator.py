@@ -66,15 +66,15 @@ class Mediator:
         target_features = self.get_target_features()
         return source_features, target_features
 
-    def get_source_features(self):
+    def get_source_features(self, blocking=True):
         try:
-            return self.source_q.get(block=True)
+            return self.source_q.get(block=blocking)
         except queue.Empty:
             return None
 
-    def get_target_features(self):
+    def get_target_features(self, blocking=True):
         try:
-            return self.target_q.get(block=True)
+            return self.target_q.get(block=blocking)
         except queue.Empty:
             return None
 

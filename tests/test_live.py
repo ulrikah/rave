@@ -28,11 +28,11 @@ def test_mediator_uses_lifo_queue_of_size_1():
     b = [4, 5, 6]
     mediator.add_source_features("/test", a)
     mediator.add_source_features("/test", b)
-    source_features = mediator.get_source_features()
+    source_features = mediator.get_source_features(blocking=False)
     features = np.array(source_features)
     assert (features == np.array(b)).all()
     assert (features != np.array(a)).any()
-    source_features = mediator.get_source_features()
+    source_features = mediator.get_source_features(blocking=False)
     assert source_features is None
 
 
@@ -55,6 +55,6 @@ def test_mediator_receives_values_from_musician():
     musician.start()
     mediator.terminate()
 
-    source_features = mediator.get_source_features()
+    source_features = mediator.get_source_features(blocking=False)
     assert np.array(source_features).mean() > 0
     assert np.array(source_features).size == len(analyser.analysis_features)
