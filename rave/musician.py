@@ -111,11 +111,11 @@ def main():
         # NOTE: temporary hack to loop the target sound
         # input_source = config["env"]["target"]
         input_source = "amen_loop.wav"
-        output_source = BLACKHOLE
         effect = None
+        output_source = BLACKHOLE
     else:
         osc_route = OSC_SOURCE_FEATURES_ROUTE
-        input_source = config["env"]["source"]
+        input_source = "noise_loop.wav"
         effect = Effect(config["env"]["effect"])
         output_source = DAC
 

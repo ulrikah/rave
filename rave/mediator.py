@@ -20,8 +20,8 @@ class Mediator:
     def __init__(self, run=True, monitor=False):
         self.osc_server = OscServer(ip_adress=OSC_ADDRESS, port=OSC_FEATURE_PORT)
         self.osc_client = OscClient(ip_adress=OSC_ADDRESS, port=OSC_MAPPING_PORT)
-        self.source_q = queue.LifoQueue()
-        self.target_q = queue.LifoQueue()
+        self.source_q = queue.LifoQueue(maxsize=1)
+        self.target_q = queue.LifoQueue(maxsize=1)
 
         self.osc_server.register_handler(
             OSC_SOURCE_FEATURES_ROUTE, self.add_source_features
@@ -43,12 +43,20 @@ class Mediator:
     def add_source_features(self, address, *features):
         if self.monitor:
             print(address, *features)
-        self.source_q.put(features)
+        try:
+            self.source_q.put(features, block=False)
+        except queue.Full:
+            _ = self.source_q.get()
+            self.source_q.put(features, block=False)
 
     def add_target_features(self, address, *features):
         if self.monitor:
             print(address, *features)
-        self.target_q.put(features)
+        try:
+            self.target_q.put(features, block=False)
+        except queue.Full:
+            _ = self.target_q.get()
+            self.target_q.put(features, block=False)
 
     def get_features(self):
         """
@@ -60,13 +68,13 @@ class Mediator:
 
     def get_source_features(self):
         try:
-            return self.source_q.get()
+            return self.source_q.get(block=True)
         except queue.Empty:
             return None
 
     def get_target_features(self):
         try:
-            return self.target_q.get()
+            return self.target_q.get(block=True)
         except queue.Empty:
             return None
 
@@ -80,11 +88,11 @@ class Mediator:
             ],
         )
 
-    def clear(self):
-        for q in [self.source_q, self.target_q]:
-            while not q.empty():
-                q.get()
-            assert q.qsize() == 0
+    def clear(self, q):
+        "Empties a queue"
+        while not q.empty():
+            q.get(block=False)
+        assert q.qsize() == 0
 
     def run(self):
         self.osc_server_thread = Thread(target=self.osc_server.serve)

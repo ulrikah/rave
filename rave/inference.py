@@ -66,7 +66,7 @@ def inference(
     source_sound: str = None,
     target_sound: str = None,
     render_to_dac=False,
-    live_mode=False,
+    live_mode=True,
 ):
     """
     Runs inference on a pretrained agent
@@ -135,8 +135,8 @@ def run_live_inference(
         action = agent.compute_action(obs)
         mapping = env.action_to_mapping(action)
         mediator.send_effect_mapping(mapping)
-
     mediator.terminate()
+    print("\n\n\tDONE\n\n")
 
 
 if __name__ == "__main__":
@@ -148,5 +148,4 @@ if __name__ == "__main__":
         source_sound=args.source_sound,
         target_sound=args.target_sound,
         render_to_dac=args.render_to_dac,
-        live_mode=True,
     )

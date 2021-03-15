@@ -21,15 +21,19 @@ from rave.osc_client import OscClient
 INPUT_SOURCE = os.path.join(AUDIO_INPUT_DIR, "noise.wav")
 
 
-def test_mediator_uses_lifo_queue():
+def test_mediator_uses_lifo_queue_of_size_1():
     mediator = Mediator(run=False)
+    assert mediator.source_q.maxsize == 1
     a = [1, 2, 3]
     b = [4, 5, 6]
     mediator.add_source_features("/test", a)
     mediator.add_source_features("/test", b)
-    features = np.array(mediator.get_source_features()[0])
+    source_features = mediator.get_source_features()
+    features = np.array(source_features)
     assert (features == np.array(b)).all()
     assert (features != np.array(a)).any()
+    source_features = mediator.get_source_features()
+    assert source_features is None
 
 
 def test_mediator_receives_values_from_musician():
@@ -51,8 +55,6 @@ def test_mediator_receives_values_from_musician():
     musician.start()
     mediator.terminate()
 
-    assert mediator.source_q.qsize() == dur_k
-    assert np.array(mediator.get_source_features()).mean() > 0
-    assert np.array(mediator.get_source_features()).size == len(
-        analyser.analysis_features
-    )
+    source_features = mediator.get_source_features()
+    assert np.array(source_features).mean() > 0
+    assert np.array(source_features).size == len(analyser.analysis_features)
