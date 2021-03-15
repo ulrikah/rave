@@ -24,7 +24,7 @@ class Analyser:
         self,
         feature_extractors: [],
         osc_route=None,
-        audio_to_analyse="aIn",
+        audio_to_analyse="aOut",
         output_file_path=None,
     ):
         self.feature_extractors = []

@@ -168,3 +168,10 @@ def test_source_wet_wraps_correctly_at_the_end_of_the_sound():
     assert env.is_start_of_source_wet_sound == True
     assert env.source_wet.player.k == 0
     assert env.source_dry.player.k == 1
+
+
+def test_target_and_source_dry_has_no_effects():
+    env = CrossAdaptiveEnv()
+    assert "aOut = aIn" in env.source_dry.csd
+    assert "aOut = aIn" in env.target.csd
+    assert "aOut = aIn" not in env.source_wet.csd
