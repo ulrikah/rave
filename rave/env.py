@@ -59,10 +59,11 @@ class CrossAdaptiveEnv(gym.Env):
         analyser = Analyser(self.feature_extractors)
         self.analysis_features = analyser.analysis_features
 
-        self.source = Sound(self.source_input)
+        self.source_dry = Sound(self.source_input)
+        self.source_wet = Sound(self.source_input)
         self.target = Sound(self.target_input)
 
-        # an observation = 1 x audio frame from both source and target => 2 x length of features
+        # an observation = one source frame + one target frame => 2 x length of features
         self.observation_space = gym.spaces.Box(
             low=0.0, high=1.0, shape=(len(self.analysis_features) * 2,)
         )
@@ -72,13 +73,16 @@ class CrossAdaptiveEnv(gym.Env):
             low=0.0, high=1.0, shape=(len(self.effect.parameters),)
         )
 
-        self.source.prepare_to_render(effect=self.effect, analyser=analyser)
+        self.source_dry.prepare_to_render(effect=None, analyser=analyser)
+        self.source_wet.prepare_to_render(effect=self.effect, analyser=analyser)
         self.target.prepare_to_render(effect=None, analyser=analyser)
 
         self.actions = []
         self.rewards = []
-        self.source_features = np.zeros(shape=len(self.analysis_features))
+        self.source_dry_features = np.zeros(shape=len(self.analysis_features))
+        self.source_wet_features = np.zeros(shape=len(self.analysis_features))
         self.target_features = np.zeros(shape=len(self.analysis_features))
+        self.is_start_of_source_wet_sound = True
 
     def action_to_mapping(self, action: np.ndarray):
         assert len(action) == len(
@@ -107,29 +111,44 @@ class CrossAdaptiveEnv(gym.Env):
         """
         return min_value + (max_value - min_value) * np.exp(np.log(x) / skew_factor)
 
-    def get_features(self):
-        source_features = self.source.player.get_channels(self.analysis_features)
-        target_features = self.target.player.get_channels(self.analysis_features)
-        return source_features, target_features
+    def get_feature_channels(self, sound: Sound):
+        return sound.player.get_channels(self.analysis_features)
 
     def step(self, action: np.ndarray):
         """
         Algorithm:
-            1. Use new action to generate a new frame of audio for both source and target
+            1. Use new action to generate a frame of audio for the wet source sound
             2. Analyse the new frame in Csound and send back features
-            3. Use features to calculate reward
+            3. Use wet features to calculate reward together with the target features
         """
         assert self.action_space.contains(action)
         self.actions.append(action)
-
         mapping = self.action_to_mapping(action)
 
-        source_done = self.source.render(mapping=mapping)
+        # features that were used to calculate the action
+        target_features_prev = self.target_features.copy()
+
+        # render one frame of all the sources
+        source_dry_done = self.source_dry.render()
         target_done = self.target.render()
+        # delay the rendering of the wet source sound one k
+        if not self.is_start_of_source_wet_sound:
+            source_wet_done = self.source_wet.render(mapping=mapping)
+        else:
+            source_wet_done = False
 
-        self.source_features, self.target_features = self.get_features()
-
-        reward = self.calculate_reward(self.source_features, self.target_features)
+        # new features are set via Csound channels
+        self.source_dry_features = self.get_feature_channels(self.source_dry)
+        self.target_features = self.get_feature_channels(self.target)
+        # delay the rendering of the wet source sound one k
+        if not self.is_start_of_source_wet_sound:
+            self.source_wet_features = self.get_feature_channels(self.source_wet)
+        if self.is_start_of_source_wet_sound:
+            reward = 0.0
+        else:
+            reward = self.calculate_reward(
+                self.source_wet_features, target_features_prev
+            )
 
         """
         An episode is either over at the end of every interval (if using this mechanism),
@@ -137,8 +156,7 @@ class CrossAdaptiveEnv(gym.Env):
         bounce when the source sound is complete
         """
 
-        done = source_done
-
+        done = source_dry_done
         if self.eval_interval is not None:
             self.step_index += 1
             should_evaluate = (
@@ -148,14 +166,20 @@ class CrossAdaptiveEnv(gym.Env):
                 self.step_index = 0
                 done = True
 
-        if source_done:
+        if source_dry_done:
             self.render()
             self._reset_internal_state()
+
+        if self.is_start_of_source_wet_sound:
+            self.is_start_of_source_wet_sound = False
+
+        if source_wet_done:
+            self.is_start_of_source_wet_sound = True
 
         return self.get_state(), reward, done, {}
 
     def get_state(self):
-        return np.concatenate((self.source_features, self.target_features))
+        return np.concatenate((self.source_dry_features, self.target_features))
 
     def _reset_internal_state(self):
         self.actions = []
@@ -172,7 +196,7 @@ class CrossAdaptiveEnv(gym.Env):
         return reward
 
     def close(self):
-        for sound in [self.source, self.target]:
+        for sound in [self.source_dry, self.source_wet, self.target]:
             if sound.player is not None:
                 sound.player.cleanup()
 

@@ -139,3 +139,32 @@ def test_debug_mode_renders_channels_to_debug_wave_file():
     assert "fout" in source.csd
     for ch in debug_channels:
         assert f"upsamp(k_{ch})" in source.csd
+
+
+def test_source_wet_is_delayed_by_one_k():
+    env = CrossAdaptiveEnv()
+    action = env.action_space.sample()
+    N = 2
+    for _ in range(N):
+        env.step(action)
+    assert env.source_dry.player.k == N
+    assert env.target.player.k == N
+    assert env.source_wet.player.k == N - 1
+
+
+def test_source_wet_wraps_correctly_at_the_end_of_the_sound():
+    config = CROSS_ADAPTIVE_DEFAULT_CONFIG
+    config["eval_interval"] = None  # episode is done at the end of the source
+    env = CrossAdaptiveEnv(CROSS_ADAPTIVE_DEFAULT_CONFIG)
+    action = env.action_space.sample()
+    assert env.is_start_of_source_wet_sound == True
+    done = False
+    while not done:
+        _, _, done, _ = env.step(action)
+    assert env.source_dry.player.k == 0
+    assert env.source_wet.player.k > 0
+    assert env.is_start_of_source_wet_sound == False
+    _, _, done, _ = env.step(action)
+    assert env.is_start_of_source_wet_sound == True
+    assert env.source_wet.player.k == 0
+    assert env.source_dry.player.k == 1
