@@ -111,8 +111,10 @@ class CrossAdaptiveEnv(gym.Env):
         """
         return min_value + (max_value - min_value) * np.exp(np.log(x) / skew_factor)
 
-    def get_feature_channels(self, sound: Sound):
-        return sound.player.get_channels(self.analysis_features)
+    def render_and_get_features(self, sound: Sound, mapping=None):
+        done = sound.render(mapping=mapping)
+        features = sound.player.get_channels(self.analysis_features)
+        return features, done
 
     def step(self, action: np.ndarray):
         """
@@ -125,30 +127,27 @@ class CrossAdaptiveEnv(gym.Env):
         self.actions.append(action)
         mapping = self.action_to_mapping(action)
 
-        # features that were used to calculate the action
+        # features that were used to calculate the current action
+        source_dry_features_prev = self.source_dry_features.copy()
         target_features_prev = self.target_features.copy()
 
-        # render one frame of all the sources
-        source_dry_done = self.source_dry.render()
-        target_done = self.target.render()
         # delay the rendering of the wet source sound one k
         if not self.is_start_of_source_wet_sound:
-            source_wet_done = self.source_wet.render(mapping=mapping)
-        else:
-            source_wet_done = False
-
-        # new features are set via Csound channels
-        self.source_dry_features = self.get_feature_channels(self.source_dry)
-        self.target_features = self.get_feature_channels(self.target)
-        # delay the rendering of the wet source sound one k
-        if not self.is_start_of_source_wet_sound:
-            self.source_wet_features = self.get_feature_channels(self.source_wet)
-        if self.is_start_of_source_wet_sound:
-            reward = 0.0
-        else:
+            self.source_wet_features, source_wet_done = self.render_and_get_features(
+                self.source_wet, mapping=mapping
+            )
             reward = self.calculate_reward(
                 self.source_wet_features, target_features_prev
             )
+        else:
+            source_wet_done = False
+            reward = 0.0
+
+        # prepare next frame
+        self.source_dry_features, source_dry_done = self.render_and_get_features(
+            self.source_dry
+        )
+        self.target_features, target_done = self.render_and_get_features(self.target)
 
         """
         An episode is either over at the end of every interval (if using this mechanism),

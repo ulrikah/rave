@@ -6,7 +6,7 @@ from ray.rllib.agents import sac
 from ray.tune.logger import pretty_print
 from ray.tune.progress_reporter import CLIReporter
 
-from rave.env import CrossAdaptiveEnv, CROSS_ADAPTIVE_DEFAULT_CONFIG
+from rave.env import CrossAdaptiveEnv
 from rave.effect import Effect
 from rave.metrics import metric_from_name
 from rave.tools import timestamp

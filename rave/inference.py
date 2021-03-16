@@ -6,7 +6,7 @@ import numpy as np
 
 import argparse
 
-from rave.env import CrossAdaptiveEnv, CROSS_ADAPTIVE_DEFAULT_CONFIG
+from rave.env import CrossAdaptiveEnv,
 from rave.effect import Effect
 from rave.metrics import metric_from_name
 from rave.config import parse_config_file
