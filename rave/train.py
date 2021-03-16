@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 import argparse
 import ray
+from ray import tune
 from ray.rllib.agents import sac
 from ray.tune.logger import pretty_print
 from ray.tune.progress_reporter import CLIReporter
@@ -48,6 +49,7 @@ def train(config: dict, checkpoint_path: str = None):
         "debug": config["env"]["debug"],
     }
 
+    learning_rate = 3e-3
     agent_config = {
         **sac.DEFAULT_CONFIG.copy(),
         "env": CrossAdaptiveEnv,
@@ -65,9 +67,12 @@ def train(config: dict, checkpoint_path: str = None):
             "fcnet_activation": config["agent"]["activation"],
             "fcnet_hiddens": config["agent"]["hidden_layers"],
         },
+        "optimization": {
+            "actor_learning_rate": learning_rate,
+            "critic_learning_rate": learning_rate,
+            "entropy_learning_rate": learning_rate,
+        },
     }
-
-    agent = sac.SACTrainer(config=agent_config)
 
     if checkpoint_path:
         # NOTE
@@ -76,11 +81,46 @@ def train(config: dict, checkpoint_path: str = None):
         path = Path(checkpoint_path)
         name = path.parent.parent.parent.name
     else:
-        name = f'{agent._name}_{config["name"]}_{timestamp(millis=False)}'
+
+        agent_name = sac.__name__.split(".")[-1].upper()  # i.e. 'SAC or 'PPO
+        name = f'{agent_name}_{config["name"]}_{timestamp(millis=False)}'
 
     progress_reporter = CLIReporter(max_report_frequency=15)
 
-    analysis = ray.tune.run(
+    ###############
+    # Hyperparameter search
+
+    hidden_layer_sizes = [4, 8, 16, 32]
+    learning_rates = [3e-3, 3e-4, 3e-5]
+
+    agent_config = tune.grid_search(
+        [
+            {
+                **agent_config.copy(),
+                "optimization": {
+                    "actor_learning_rate": lr,
+                    "critic_learning_rate": lr,
+                    "entropy_learning_rate": lr,
+                },
+            }
+            for lr in learning_rates
+        ]
+        # [
+        #     {
+        #         **agent_config,
+        #         "Q_model": {
+        #             "fcnet_hiddens": size,
+        #         },
+        #         "policy_model": {
+        #             "fcnet_hiddens": size,
+        #         },
+        #     }
+        #     for size in hidden_layer_sizes
+        # ]
+    )
+    ###############
+
+    analysis = tune.run(
         sac.SACTrainer,
         config=agent_config,
         local_dir=RAY_RESULTS_DIR,
@@ -89,6 +129,7 @@ def train(config: dict, checkpoint_path: str = None):
         name=name,
         restore=checkpoint_path,  # None is default
         progress_reporter=progress_reporter,
+        stop={"timesteps_total": 50000},
     )
 
 
