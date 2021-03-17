@@ -5,10 +5,5 @@
         "kspread_l",
         "kflatness_l",
         "kflux_l"
-
-        // these values help practically nothing
-        // "kskewness_l",
-        // "kkurtosis_l",
-        // "kcrest_l",
     ]
 }
