@@ -30,8 +30,8 @@ def test_dry_and_wet_are_not_the_same():
             wet.render()
             dry_chans = dry.player.get_channels(analysis_channels)
             wet_chans = wet.player.get_channels(analysis_channels)
-            assert not np.array_equal(
-                dry_chans, wet_chans
+            assert (
+                dry_chans != wet_chans
             ), f"Dry and wet should not be equal for {effect_name}"
 
 
@@ -50,6 +50,6 @@ def test_two_dry_signals_yield_the_same_features():
         dry2.render()
         dry1_chans = dry1.player.get_channels(analysis_channels)
         dry2_chans = dry2.player.get_channels(analysis_channels)
-        assert np.array_equal(
-            dry1_chans, dry2_chans
+        assert (
+            dry1_chans == dry2_chans
         ), "Two dry signals should yield the same features"

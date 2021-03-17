@@ -12,6 +12,7 @@ from rave.effect import Effect
 from rave.analyser import Analyser
 from rave.sound import Sound
 from rave.mediator import Mediator
+from rave.standardizer import Standardizer
 from rave.tools import timestamp, play_wav
 from rave.constants import DAC, DEBUG_SUFFIX
 
@@ -58,6 +59,9 @@ class CrossAdaptiveEnv(gym.Env):
             )
         analyser = Analyser(self.feature_extractors)
         self.analysis_features = analyser.analysis_features
+        self.standardizer = Standardizer(
+            [Sound(self.source_input), Sound(self.target_input)], analyser
+        )
 
         self.source_dry = Sound(self.source_input)
         self.source_wet = Sound(self.source_input)
@@ -113,8 +117,16 @@ class CrossAdaptiveEnv(gym.Env):
 
     def render_and_get_features(self, sound: Sound, mapping=None):
         done = sound.render(mapping=mapping)
-        features = sound.player.get_channels(self.analysis_features)
-        return features, done
+        raw_features = sound.player.get_channels(self.analysis_features)
+        standardized_features = np.array(
+            [
+                self.standardizer.get_standardized_value(
+                    self.analysis_features[i], feature_value
+                )
+                for i, feature_value in enumerate(raw_features)
+            ]
+        )
+        return standardized_features, done
 
     def step(self, action: np.ndarray):
         """

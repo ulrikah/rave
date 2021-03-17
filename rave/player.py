@@ -43,7 +43,7 @@ class Player:
             self.cs.setControlChannel(name, value)
 
     def get_channels(self, channels):
-        return np.array([self.cs.controlChannel(channel)[0] for channel in channels])
+        return [self.cs.controlChannel(channel)[0] for channel in channels]
 
     def render_until_end(self):
         while self.cs.performKsmps() == 0:

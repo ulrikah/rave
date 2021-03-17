@@ -17,7 +17,7 @@ class Standardizer:
         """
         Computes mean and standard deviation for all the sounds
         """
-        features = np.empty(shape=(len(self.analyser.analysis_features),))
+        features = []
         for sound in self.sounds:
             sound.prepare_to_render(analyser=self.analyser)
             done = False
@@ -26,15 +26,13 @@ class Standardizer:
                 frame_features = sound.player.get_channels(
                     self.analyser.analysis_features
                 )
-                if (frame_features > 1.0).any() or (frame_features < 0.0).any():
+                if (max(frame_features) > 1.0) or (min(frame_features) < 0.0):
                     # NOTE: hacky way of filtering out outliars since Csound params are supposed to be limited (?)
                     # TODO: log how often this happens and try to debug it
                     continue
                 else:
-                    features = np.vstack((features, frame_features))
-        # remove initial row
-        features = features[1:, :]
-
+                    features.append(frame_features)
+        features = np.array(features, dtype=float)
         stats = {}
         for i, feature_name in enumerate(self.analyser.analysis_features):
             stats[feature_name] = {
@@ -74,7 +72,7 @@ if __name__ == "__main__":
     done = False
     while not done:
         done = new_sound.render()
-        frame_features = new_sound.player.get_channels(a.analysis_features)
+        frame_features = np.array(new_sound.player.get_channels(a.analysis_features))
         if (frame_features > 1.0).any() or (frame_features < 0.0).any():
             # NOTE: hacky way of filtering out outliars since Csound params are supposed to be limited (?)
             # TODO: log how often this happens and try to debug it

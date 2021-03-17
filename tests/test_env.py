@@ -109,7 +109,6 @@ def test_non_debug_mode_does_not_define_debug_channels():
     action = env.action_space.sample()
     env.step(action)
     source = env.render()
-    debug_values = source.player.get_channels(debug_channels)
     for ch in debug_channels:
         assert f'chn_k "{ch}"' not in source.csd
 
@@ -144,7 +143,6 @@ def test_debug_mode_renders_channels_to_debug_wave_file():
     action = env.action_space.sample()
     env.step(action)
     source = env.render()
-    debug_values = source.player.get_channels(debug_channels)
     assert "fout" in source.csd
     for ch in debug_channels:
         assert f"upsamp(k_{ch})" in source.csd
@@ -162,7 +160,7 @@ def test_env_inits_and_makes_first_step_correctly():
     assert done == True
     assert reward == 0.0
     assert not np.array_equal(state, initial_state)
-    assert state.mean() > 0.0
+    assert np.abs(state.mean()) > 0.0
 
 
 def test_source_wet_is_delayed_by_one_k():
