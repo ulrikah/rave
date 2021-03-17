@@ -75,50 +75,15 @@ def train(config: dict, checkpoint_path: str = None):
     }
 
     if checkpoint_path:
-        # NOTE
-        # hacky way to find the corresponding Tune 'name' of the restored experiment since
-        # the checkpoint is always three levels deeper
+        # NOTE: hacky way to find the corresponding Tune 'name' of the
+        # restored experiment since the checkpoint is always three levels deeper
         path = Path(checkpoint_path)
         name = path.parent.parent.parent.name
     else:
-
         agent_name = sac.__name__.split(".")[-1].upper()  # i.e. 'SAC or 'PPO
         name = f'{agent_name}_{config["name"]}_{timestamp(millis=False)}'
 
     progress_reporter = CLIReporter(max_report_frequency=15)
-
-    ###############
-    # Hyperparameter search
-
-    hidden_layer_sizes = [4, 8, 16, 32]
-    learning_rates = [3e-3, 3e-4, 3e-5]
-
-    agent_config = tune.grid_search(
-        [
-            {
-                **agent_config.copy(),
-                "optimization": {
-                    "actor_learning_rate": lr,
-                    "critic_learning_rate": lr,
-                    "entropy_learning_rate": lr,
-                },
-            }
-            for lr in learning_rates
-        ]
-        # [
-        #     {
-        #         **agent_config,
-        #         "Q_model": {
-        #             "fcnet_hiddens": size,
-        #         },
-        #         "policy_model": {
-        #             "fcnet_hiddens": size,
-        #         },
-        #     }
-        #     for size in hidden_layer_sizes
-        # ]
-    )
-    ###############
 
     analysis = tune.run(
         sac.SACTrainer,
