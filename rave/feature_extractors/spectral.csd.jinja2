@@ -32,7 +32,7 @@ if (kdoflag > 0) && (kflag > 0) then
     kArrCorr		= kArrA*kArrAprev
     kspread		    = sumarray(((kArrF+(kcentroid*-1))^2)*kArrAnorm)^0.5
     kskewness	    divz sumarray(((kArrF+(kcentroid*-1))^3)*kArrAnorm), kspread^3, 1
-    kurtosis	    divz sumarray(((kArrF+(kcentroid*-1))^4)*kArrAnorm), kspread^4, 1
+    kkurtosis	    divz sumarray(((kArrF+(kcentroid*-1))^4)*kArrAnorm), kspread^4, 1
     kcrest			divz kmaxAmp, ksumAmp/giFftTabSize, 1
     kArrAlog[]      = kArrA
     kArrAlog[0]     = 1
@@ -57,9 +57,9 @@ if (kdoflag > 0) && (kflag > 0) then
     kskewness		samphold kskewness, kgate
     kskewness2		samphold kskewness, kgate2
     kskewness       = (kgate2 > 0 ? kskewness : kskewness2-((kskewness-kskewness2)*((1-klowscaler)*0.25)))
-    kurtosis		samphold kurtosis, kgate
-    kurtosis2		samphold kurtosis, kgate2
-    kurtosis        = (kgate2 > 0 ? kurtosis : kurtosis2-((kurtosis-kurtosis2)*((1-klowscaler)*0.25)))
+    kkurtosis		samphold kkurtosis, kgate
+    kkurtosis2		samphold kkurtosis, kgate2
+    kkurtosis        = (kgate2 > 0 ? kkurtosis : kkurtosis2-((kkurtosis-kkurtosis2)*((1-klowscaler)*0.25)))
     kflatness		samphold kflatness, kgate
     kflatness2		samphold kflatness, kgate2
     kflatness       = (kgate2 > 0 ? kflatness : kflatness2-((kflatness-kflatness2)*((1-klowscaler)*0.25)))
@@ -84,7 +84,7 @@ endif
     kcentroid_n     = kcentroidf / (sr*0.15)
     kspread_n       = kspread / (sr*0.15)
     kskewness_n     = kskewness / (sr*0.0005)
-    kurtosis_n      = kurtosis / (sr*0.006)
+    kkurtosis_n      = kkurtosis / (sr*0.006)
     kflatness_n     = kflatness * 3
     kcrest_n        = kcrest / 250
     kflux_n         = kfluxf * 4
@@ -95,7 +95,7 @@ endif
     kcentroid_l     limit kcentroid_n, 0, 1
     kspread_l       limit kspread_n, 0, 1
     kskewness_l     limit kskewness_n, 0, 1
-    kurtosis_l      limit kurtosis_n, 0, 1
+    kkurtosis_l      limit kkurtosis_n, 0, 1
     kflatness_l     limit kflatness_n, 0, 1
     kcrest_l        limit kcrest_n, 0, 1
     kflux_l         limit kflux_n, 0, 1
@@ -106,7 +106,7 @@ endif
 chnset kcentroid_l,     "kcentroid_l"
 chnset kspread_l,       "kspread_l"
 chnset kskewness_l,     "kskewness_l"
-chnset kurtosis_l,      "kurtosis_l"
+chnset kkurtosis_l,      "kkurtosis_l"
 chnset kflatness_l,     "kflatness_l"
 chnset kcrest_l,        "kcrest_l"
 chnset kflux_l,         "kflux_l"

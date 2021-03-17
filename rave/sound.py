@@ -78,8 +78,9 @@ class Sound:
     def get_properties(wav_path):
         with wave.open(wav_path, "rb") as wav:
             frame_rate = wav.getframerate()
-            n_frames = wav.getnframes()
-            duration = n_frames / frame_rate
+            n_samples = wav.getnframes()
+            n_frames = int(n_samples / KSMPS)
+            duration = n_samples / frame_rate
             return frame_rate, n_frames, duration
 
     def prepare_to_render(

@@ -3,10 +3,12 @@
     "output_channels": [
         "kcentroid_l",
         "kspread_l",
-        "kskewness_l",
-        "kurtosis_l",
         "kflatness_l",
-        "kcrest_l",
         "kflux_l"
+
+        // these values help practically nothing
+        // "kskewness_l",
+        // "kkurtosis_l",
+        // "kcrest_l",
     ]
 }
