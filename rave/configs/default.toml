@@ -9,7 +9,7 @@ effect = "dist_lpf"
 feature_extractors = ["rms", "pitch", "spectral"]
 source = "noise.wav"
 target = "amen.wav"
-metric = "l2_normalized"
+metric = "l2"
 eval_interval = 1
 debug = true
 

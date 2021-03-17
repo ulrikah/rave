@@ -14,7 +14,7 @@ from rave.sound import Sound
 from rave.mediator import Mediator
 from rave.standardizer import Standardizer
 from rave.tools import timestamp, play_wav
-from rave.constants import DAC, DEBUG_SUFFIX
+from rave.constants import DAC, DEBUG_SUFFIX, DEVIATION_LIMIT
 
 AMEN = "amen_trim.wav"
 NOISE = "noise.wav"
@@ -69,7 +69,9 @@ class CrossAdaptiveEnv(gym.Env):
 
         # an observation = one source frame + one target frame => 2 x length of features
         self.observation_space = gym.spaces.Box(
-            low=0.0, high=1.0, shape=(len(self.analysis_features) * 2,)
+            low=-DEVIATION_LIMIT,
+            high=DEVIATION_LIMIT,
+            shape=(len(self.analysis_features) * 2,),
         )
 
         # an action = a combination of effect parameters

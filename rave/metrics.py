@@ -25,7 +25,6 @@ def metric_from_name(name: str) -> AbstractMetric:
     return {
         "l1": AbsoluteValueNorm,
         "l2": EuclideanDistance,
-        "l2_normalized": NormalizedEuclidean,
     }[name]()
 
 
@@ -43,36 +42,6 @@ class AbsoluteValueNorm(AbstractMetric):
         l1_norm = np.mean(np.abs(source - target))
         reward = 1.0 / (1.0 + l1_norm)
         return reward
-
-
-class NormalizedEuclidean(AbstractMetric):
-    def __init__(self):
-        super().__init__()
-        self.reward_range = (0.0, 1.0)
-
-    def normalize(self, reward, feature_length: int):
-        # TODO: only do this once (problem is if features change)
-        one = np.ones(feature_length)
-        zero = np.zeros(feature_length)
-        a = 1.0 / (1.0 + np.linalg.norm(one - zero))
-        b = 1.0 / (1.0 + np.linalg.norm(one - one))
-        c, d = self.reward_range
-        return scale(reward, a, b, c, d)
-
-    def calculate_reward(self, source: np.ndarray, target: np.ndarray):
-        """
-        Computes the euclidean distance (L2 norm) between two feature vectors
-
-        Normalizes output so that closer distances result in higher rewards, and
-        so that the lower and higher bounds are truly (0.0, 1.0)
-        """
-        euclidean_distance = np.linalg.norm(source - target)
-        reward = 1.0 / (1.0 + euclidean_distance)
-        scaled_reward = self.normalize(reward, source.size)
-        assert self.is_in_range(
-            scaled_reward, self.reward_range
-        ), f"Reward {scaled_reward} is outside the requested range {self.reward_range}"
-        return scaled_reward
 
 
 class EuclideanDistance(AbstractMetric):
@@ -100,7 +69,7 @@ if __name__ == "__main__":
     t2 = np.arange(-0.1, 0.3, step=0.1) + 0.01  # closer than t1
     ones = np.ones(4)
     zeros = np.zeros(4)
-    for _metric in [NormalizedEuclidean]:
+    for _metric in [EuclideanDistance]:
         metric = _metric()
         r1 = metric.calculate_reward(s, t1)
         r2 = metric.calculate_reward(s, t2)
