@@ -16,5 +16,5 @@ debug = true
 [agent]
 checkpoint_freq = 100
 checkpoint_at_end = true
-hidden_layers = [64]
+hidden_layers = [16]
 activation = "relu"
