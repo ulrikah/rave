@@ -1,6 +1,5 @@
 import toml
 import os
-import argparse
 
 CONFIG_FILE_DIR = "rave/configs"
 

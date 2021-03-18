@@ -1,19 +1,13 @@
 import gym
 import numpy as np
-import torch
-
-import subprocess
 import os
-import sys
-from enum import Enum
 
-from rave.metrics import EuclideanDistance, AbstractMetric
+from rave.metrics import EuclideanDistance
 from rave.effect import Effect
 from rave.analyser import Analyser
 from rave.sound import Sound
-from rave.mediator import Mediator
 from rave.standardizer import Standardizer
-from rave.tools import timestamp, play_wav
+from rave.tools import timestamp
 from rave.constants import DAC, DEBUG_SUFFIX, DEVIATION_LIMIT
 
 AMEN = "amen_trim.wav"
@@ -141,8 +135,7 @@ class CrossAdaptiveEnv(gym.Env):
         self.actions.append(action)
         mapping = self.action_to_mapping(action)
 
-        # features that were used to calculate the current action
-        source_dry_features_prev = self.source_dry_features.copy()
+        # the target features that were used to calculate the current action
         target_features_prev = self.target_features.copy()
 
         # delay the rendering of the wet source sound one k

@@ -7,8 +7,6 @@ from rave.constants import DEVIATION_LIMIT
 
 
 class Standardizer:
-    DEVIATION_LIMIT = 4.0
-
     def __init__(self, sounds: [Sound], analyser: Analyser):
         self.sounds = sounds
         self.analyser = analyser
@@ -47,7 +45,7 @@ class Standardizer:
     def get_standardized_value(self, feature: str, value: float):
         if not self.stats:
             raise ValueError("Statistics have not been calculated yet")
-        if not feature in self.stats.keys():
+        if feature not in self.stats.keys():
             raise ValueError("Statistics have not been calculated for this feature")
 
         if self.stats[feature]["std"] == 0.0:
@@ -57,7 +55,7 @@ class Standardizer:
                 feature
             ]["std"]
             standardized_value = max(
-                min(standardized_value, self.DEVIATION_LIMIT), -self.DEVIATION_LIMIT
+                min(standardized_value, DEVIATION_LIMIT), -DEVIATION_LIMIT
             )
         return standardized_value
 

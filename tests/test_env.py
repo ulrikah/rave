@@ -1,4 +1,3 @@
-import pytest
 import numpy as np
 
 from rave.env import CrossAdaptiveEnv, CROSS_ADAPTIVE_DEFAULT_CONFIG
@@ -157,7 +156,7 @@ def test_env_inits_and_makes_first_step_correctly():
     )
     action = env.action_space.sample()
     state, reward, done, _ = env.step(action)
-    assert done == True
+    assert done is True
     assert reward == 0.0
     assert not np.array_equal(state, initial_state)
     assert np.abs(state.mean()) > 0.0
@@ -201,15 +200,15 @@ def test_source_wet_wraps_correctly_at_the_end_of_the_sound():
     }
     env = CrossAdaptiveEnv(config)
     action = env.action_space.sample()
-    assert env.is_start_of_source_wet_sound == True
+    assert env.is_start_of_source_wet_sound is True
     done = False
     while not done:
         _, _, done, _ = env.step(action)
     assert env.source_dry.player.k == 0
     assert env.source_wet.player.k > 0
-    assert env.is_start_of_source_wet_sound == False
+    assert env.is_start_of_source_wet_sound is False
     _, _, done, _ = env.step(action)
-    assert env.is_start_of_source_wet_sound == True
+    assert env.is_start_of_source_wet_sound is True
     assert env.source_wet.player.k == 0
     assert env.source_dry.player.k == 1
 

@@ -1,5 +1,4 @@
 import json
-import sys
 import os
 from types import SimpleNamespace
 from random import uniform
@@ -8,10 +7,7 @@ from collections import namedtuple
 import numpy as np
 
 from rave.template_handler import TemplateHandler
-from rave.player import Player
-from rave.tools import timestamp, get_duration
-
-from rave.constants import EFFECT_TEMPLATE_DIR, EFFECT_BASE, CSD_JINJA_SUFFIX
+from rave.constants import EFFECT_TEMPLATE_DIR, CSD_JINJA_SUFFIX
 
 Channel = namedtuple("Channel", ["name", "value"])
 

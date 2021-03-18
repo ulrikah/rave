@@ -1,8 +1,6 @@
-import pytest
 import numpy as np
 
 import os
-import time
 
 from rave.analyser import Analyser
 from rave.musician import Musician
@@ -10,13 +8,10 @@ from rave.effect import Effect
 from rave.mediator import Mediator
 from rave.constants import (
     AUDIO_INPUT_DIR,
-    KSMPS,
-    SAMPLE_RATE,
     NO_SOUND,
     OSC_SOURCE_FEATURES_ROUTE,
 )
-from rave.tools import k_per_sec, get_duration
-from rave.osc_client import OscClient
+from rave.tools import get_duration
 
 INPUT_SOURCE = os.path.join(AUDIO_INPUT_DIR, "noise.wav")
 
@@ -38,7 +33,6 @@ def test_mediator_uses_lifo_queue_of_size_1():
 
 def test_mediator_receives_values_from_musician():
     dur_s = get_duration(INPUT_SOURCE)
-    dur_k = round(k_per_sec(KSMPS, SAMPLE_RATE) * dur_s)
     analyser = Analyser(["rms", "mfcc"], osc_route=OSC_SOURCE_FEATURES_ROUTE)
     mediator = Mediator(run=False)
     effect = Effect("bandpass")

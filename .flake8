@@ -1,0 +1,12 @@
+[flake8]
+# W503 line break before binary operator
+# E501 line too long
+ignore = W503, E501
+exclude =
+	.venv,
+	.git,
+	__pycache__,
+	rave/.ipynb_checkpoints,
+	.flake8,
+	.pre-commit-config.yaml,
+	pyproject.toml,

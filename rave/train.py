@@ -1,10 +1,8 @@
-import os
 from pathlib import Path
 import argparse
 import ray
 from ray import tune
 from ray.rllib.agents import sac
-from ray.tune.logger import pretty_print
 from ray.tune.progress_reporter import CLIReporter
 
 from rave.env import CrossAdaptiveEnv
@@ -96,6 +94,7 @@ def train(config: dict, checkpoint_path: str = None):
         progress_reporter=progress_reporter,
         stop={"training_iteration": 1001},
     )
+    print(analysis)
 
 
 if __name__ == "__main__":

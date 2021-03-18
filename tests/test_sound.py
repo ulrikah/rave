@@ -1,5 +1,3 @@
-import numpy as np
-
 from rave.sound import Sound
 from rave.effect import Effect
 from rave.analyser import Analyser

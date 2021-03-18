@@ -5,9 +5,6 @@ import matplotlib.pyplot as plt
 
 import subprocess
 import datetime
-import wave
-import glob
-import sys
 
 
 def sec_per_k(ksmps=64, sr=44100):

@@ -1,15 +1,13 @@
 import os
 import wave
 
-import numpy as np
 
 from rave.effect import Effect
 from rave.analyser import Analyser
 from rave.template_handler import TemplateHandler
-from rave.tools import timestamp, get_duration
+from rave.tools import timestamp
 from rave.player import Player
 from rave.constants import (
-    LIVE,
     NO_SOUND,
     ADC,
     DAC,

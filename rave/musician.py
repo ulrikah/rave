@@ -4,7 +4,6 @@ from rave.constants import (
     LIVE,
     DAC,
     ADC,
-    NO_SOUND,
     OSC_TARGET_FEATURES_ROUTE,
     OSC_SOURCE_FEATURES_ROUTE,
 )
@@ -90,7 +89,7 @@ class Musician:
         ╩═╝╩ ╚╝ ╚═╝
         """
         )
-        csd_file = self.sound.prepare_to_render(
+        _ = self.sound.prepare_to_render(
             effect=self.effect,
             analyser=self.analyser,
             receive_mapping_over_osc=not self.is_target,

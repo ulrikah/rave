@@ -1,17 +1,14 @@
 import ray
 from ray.rllib.agents.trainer import Trainer
 from ray.rllib.agents import sac
-from gym import Env
 import numpy as np
 
 import argparse
 
-from rave.env import CrossAdaptiveEnv,
+from rave.env import CrossAdaptiveEnv
 from rave.effect import Effect
 from rave.metrics import metric_from_name
 from rave.config import parse_config_file
-from rave.musician import Musician
-from rave.analyser import Analyser
 from rave.mediator import Mediator
 
 

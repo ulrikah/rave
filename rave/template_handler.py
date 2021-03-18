@@ -1,4 +1,4 @@
-from jinja2 import Environment, Template, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader
 
 
 class TemplateHandler:

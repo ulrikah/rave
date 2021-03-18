@@ -16,7 +16,7 @@ def test_analyser_initialisation():
 def test_analyser_raises_error_on_unknown_extractor():
     features = ["unkwown_extractor"]
     with pytest.raises(ValueError):
-        analyser = Analyser(features)
+        Analyser(features)
 
 
 def test_output_channels_exist():

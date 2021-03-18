@@ -2,7 +2,6 @@ import ctcsound
 
 import sys
 import logging
-import numpy as np
 
 
 class Player:
@@ -22,7 +21,8 @@ class Player:
             self._open_message_buffer()
         result = self.cs.compileCsdText(csd)
         result = self.cs.start()
-        while self.cs.performKsmps() == 0:
+        while result == 0:
+            result = self.cs.performKsmps()
             pass
         self.cleanup(exit)
 
@@ -58,7 +58,7 @@ class Player:
             self.cleanup()
             # end of score
             if result == 2:
-                if loop == True:
+                if loop is True:
                     assert (
                         self.csd is not None
                     ), "Tried to restart without a reference to any CSD"
@@ -74,7 +74,7 @@ class Player:
             if self._has_message_buffer:
                 self.cs.destroyMessageBuffer()
                 self._has_message_buffer = False
-        exit_code = self.cs.cleanup()
+        _ = self.cs.cleanup()
         self.cs.reset()
         if exit:
             del self.cs

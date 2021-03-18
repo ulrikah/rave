@@ -1,5 +1,3 @@
-import numpy as np
-import time
 import queue
 from threading import Thread
 

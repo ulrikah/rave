@@ -1,4 +1,3 @@
-import time
 from types import FunctionType
 
 from pythonosc.dispatcher import Dispatcher
