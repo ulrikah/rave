@@ -7,13 +7,9 @@ __pycache__/
 
 # jupyter
 .ipynb_checkpoints/
-# notebooks/
 
 # poetry
 .venv/
-
-# pyenv
-.python-version
 
 # assets
 ./*.wav
