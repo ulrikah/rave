@@ -1,13 +1,6 @@
 import numpy as np
 
 
-def scale(v, a, b, c, d):
-    """
-    Scales a value v in range [a, b] to range [c, d]
-    """
-    return (v - a) * (d - c) / (b - a) + c
-
-
 class AbstractMetric:
     def __init__(self):
         self.reward_range = None

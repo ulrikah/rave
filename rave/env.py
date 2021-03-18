@@ -7,7 +7,7 @@ from rave.effect import Effect
 from rave.analyser import Analyser
 from rave.sound import Sound
 from rave.standardizer import Standardizer
-from rave.tools import timestamp
+from rave.tools import timestamp, scale
 from rave.constants import DAC, DEBUG_SUFFIX, DEVIATION_LIMIT
 
 AMEN = "amen_trim.wav"
@@ -33,11 +33,12 @@ class CrossAdaptiveEnv(gym.Env):
     """
 
     def __init__(self, config=CROSS_ADAPTIVE_DEFAULT_CONFIG):
+        self._reset_internal_state()
+
         self.source_input = config["source"]
         self.target_input = config["target"]
         self.effect = config["effect"]
         self.metric = config["metric"]
-        self.feature_extractors = config["feature_extractors"]
         self.feature_extractors = config["feature_extractors"]
         self.render_to_dac = config["render_to_dac"]
         self.debug = config["debug"]
@@ -57,11 +58,7 @@ class CrossAdaptiveEnv(gym.Env):
             [Sound(self.source_input), Sound(self.target_input)], analyser
         )
 
-        self.source_dry = Sound(self.source_input)
-        self.source_wet = Sound(self.source_input)
-        self.target = Sound(self.target_input)
-
-        # an observation = one source frame + one target frame => 2 x length of features
+        # an observation = analysis of one source frame + one target frame
         self.observation_space = gym.spaces.Box(
             low=-DEVIATION_LIMIT,
             high=DEVIATION_LIMIT,
@@ -70,19 +67,22 @@ class CrossAdaptiveEnv(gym.Env):
 
         # an action = a combination of effect parameters
         self.action_space = gym.spaces.Box(
-            low=0.0, high=1.0, shape=(len(self.effect.parameters),)
+            low=-1.0, high=1.0, shape=(len(self.effect.parameters),)
         )
+
+        # initialize sound source
+        self.source_dry = Sound(self.source_input)
+        self.source_wet = Sound(self.source_input)
+        self.target = Sound(self.target_input)
 
         self.source_dry.prepare_to_render(effect=None, analyser=analyser)
         self.source_wet.prepare_to_render(effect=self.effect, analyser=analyser)
         self.target.prepare_to_render(effect=None, analyser=analyser)
 
-        self.actions = []
-        self.rewards = []
         self.source_dry_features = np.zeros(shape=len(self.analysis_features))
         self.source_wet_features = np.zeros(shape=len(self.analysis_features))
         self.target_features = np.zeros(shape=len(self.analysis_features))
-        self.is_start_of_source_wet_sound = True
+        self.should_delay_source_wet_one_frame = True
 
     def action_to_mapping(self, action: np.ndarray):
         assert len(action) == len(
@@ -103,13 +103,16 @@ class CrossAdaptiveEnv(gym.Env):
     @staticmethod
     def map_action_to_effect_parameter(x, min_value, max_value, skew_factor):
         """
-        Scaling outputs of the neural network in the [0, 1] range to a desired range with a skew factor.
+        Scaling outputs of the neural network in the [-1, 1] range to a desired range with a skew factor.
         The skew factor is a way of creating non-linear mappings. The mapping can be made linear by setting
         the skew factor to 1.0.
 
         This mapping trick is an idea borrowed from Jordal (2017) and Walsh (2008).
         """
-        return min_value + (max_value - min_value) * np.exp(np.log(x) / skew_factor)
+        scaled_x = scale(x, -1, 1, 0, 1)
+        return min_value + (max_value - min_value) * np.exp(
+            np.log(scaled_x) / skew_factor
+        )
 
     def render_and_get_features(self, sound: Sound, mapping=None):
         done = sound.render(mapping=mapping)
@@ -139,16 +142,15 @@ class CrossAdaptiveEnv(gym.Env):
         target_features_prev = self.target_features.copy()
 
         # delay the rendering of the wet source sound one k
-        if not self.is_start_of_source_wet_sound:
-            self.source_wet_features, source_wet_done = self.render_and_get_features(
+        if self.should_delay_source_wet_one_frame:
+            reward = 0.0
+        else:
+            self.source_wet_features, _ = self.render_and_get_features(
                 self.source_wet, mapping=mapping
             )
             reward = self.calculate_reward(
                 self.source_wet_features, target_features_prev
             )
-        else:
-            source_wet_done = False
-            reward = 0.0
 
         # prepare next frame
         self.source_dry_features, source_dry_done = self.render_and_get_features(
@@ -176,11 +178,8 @@ class CrossAdaptiveEnv(gym.Env):
             self.render()
             self._reset_internal_state()
 
-        if self.is_start_of_source_wet_sound:
-            self.is_start_of_source_wet_sound = False
-
-        if source_wet_done:
-            self.is_start_of_source_wet_sound = True
+        if self.should_delay_source_wet_one_frame:
+            self.should_delay_source_wet_one_frame = False
 
         return self.get_state(), reward, done, {}
 
@@ -206,15 +205,14 @@ class CrossAdaptiveEnv(gym.Env):
             if sound.player is not None:
                 sound.player.cleanup()
 
-    def render(self):
+    def render(self, tag="render"):
         """
         Renders a file with all the actions from the episode
         """
-        done = False
         if self.render_to_dac:
             output = DAC
         else:
-            output = f"{timestamp()}_render_{self.effect.name}_{os.path.basename(self.source_input)}"
+            output = f"{timestamp()}_{tag}_{self.effect.name}_{os.path.basename(self.source_input)}"
 
         source = Sound(
             self.source_input,

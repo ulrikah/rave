@@ -99,14 +99,16 @@ def inference(
         "log_level": config["ray"]["log_level"],
         # Model options for the Q network(s).
         "Q_model": {
-            "fcnet_activation": config["agent"]["activation"],
+            "fcnet_activation": "tanh",
             "fcnet_hiddens": config["agent"]["hidden_layers"],
         },
         # Model options for the policy function.
         "policy_model": {
-            "fcnet_activation": config["agent"]["activation"],
+            "fcnet_activation": "tanh",
             "fcnet_hiddens": config["agent"]["hidden_layers"],
         },
+        "explore": False,
+        # "clip_actions": False,
     }
 
     env = CrossAdaptiveEnv(env_config)

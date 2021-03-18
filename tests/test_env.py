@@ -14,10 +14,10 @@ def test_linear_mapping():
         CrossAdaptiveEnv.map_action_to_effect_parameter(
             action, min_value, max_value, skew_factor
         )
-        == 0.5
+        == 0.75
     )
 
-    action = 0.5
+    action = 0.0
     min_value = 50
     max_value = 20000
     skew_factor = 1.0
@@ -50,7 +50,7 @@ def test_non_linear_mapping():
         CrossAdaptiveEnv.map_action_to_effect_parameter(
             action, min_value, max_value, skew_factor
         )
-        == 0.25
+        == 0.5625
     )
 
 
@@ -127,7 +127,7 @@ def test_debug_mode_sets_debug_channels():
     source = env.render()
     debug_values = source.player.get_channels(debug_channels)
     for v in debug_values:
-        assert 0.0 < v < 1.0
+        assert env.action_space.low[0] < v < env.action_space.high[1]
 
 
 def test_debug_mode_renders_channels_to_debug_wave_file():
@@ -200,15 +200,14 @@ def test_source_wet_wraps_correctly_at_the_end_of_the_sound():
     }
     env = CrossAdaptiveEnv(config)
     action = env.action_space.sample()
-    assert env.is_start_of_source_wet_sound is True
+    assert env.should_delay_source_wet_one_frame is True
     done = False
     while not done:
         _, _, done, _ = env.step(action)
     assert env.source_dry.player.k == 0
     assert env.source_wet.player.k > 0
-    assert env.is_start_of_source_wet_sound is False
+    assert env.should_delay_source_wet_one_frame is False
     _, _, done, _ = env.step(action)
-    assert env.is_start_of_source_wet_sound is True
     assert env.source_wet.player.k == 0
     assert env.source_dry.player.k == 1
 

@@ -7,6 +7,13 @@ import subprocess
 import datetime
 
 
+def scale(v, a, b, c, d):
+    """
+    Scales a value v in range [a, b] to range [c, d]
+    """
+    return (v - a) * (d - c) / (b - a) + c
+
+
 def sec_per_k(ksmps=64, sr=44100):
     """How many seconds are there in 1 k with sample rate sr?"""
     return ksmps / sr
@@ -106,6 +113,10 @@ def play_wav(wav_file: str):
     Plays back a static wave file by calling sox in a subprocess
     """
     subprocess.run(["play", wav_file])
+
+
+def beep():
+    return subprocess.run(["play", "-q", "-n", "synth", "1", "sin", "220"])
 
 
 if __name__ == "__main__":

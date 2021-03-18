@@ -57,12 +57,12 @@ def train(config: dict, checkpoint_path: str = None):
         "log_level": config["ray"]["log_level"],
         # Model options for the Q network(s).
         "Q_model": {
-            "fcnet_activation": config["agent"]["activation"],
+            "fcnet_activation": "tanh",
             "fcnet_hiddens": config["agent"]["hidden_layers"],
         },
         # Model options for the policy function.
         "policy_model": {
-            "fcnet_activation": config["agent"]["activation"],
+            "fcnet_activation": "tanh",
             "fcnet_hiddens": config["agent"]["hidden_layers"],
         },
         "optimization": {
@@ -92,7 +92,6 @@ def train(config: dict, checkpoint_path: str = None):
         name=name,
         restore=checkpoint_path,  # None is default
         progress_reporter=progress_reporter,
-        stop={"training_iteration": 1001},
     )
     print(analysis)
 
