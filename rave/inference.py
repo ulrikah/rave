@@ -54,6 +54,13 @@ def args():
         default=False,
         help="If the inference should output directly to the speakers",
     )
+    parser.add_argument(
+        "--live",
+        dest="live_mode",
+        action="store_true",
+        default=False,
+        help="Live mode or not",
+    )
     return parser.parse_args()
 
 
@@ -117,6 +124,8 @@ def inference(
 
     if live_mode:
         run_live_inference(agent, env)
+    else:
+        run_offline_inference(agent, env)
 
 
 def run_live_inference(
@@ -138,6 +147,15 @@ def run_live_inference(
     print("\n\n\tDONE\n\n")
 
 
+def run_offline_inference(agent: Trainer, env: CrossAdaptiveEnv):
+    # NOTE: something is wrong here. For some reason, all the action values are too close to the bound
+    done = False
+    obs = env.reset()
+    while not done:
+        action = agent.compute_action(obs)
+        obs, _, done, _ = env.step(action)
+
+
 if __name__ == "__main__":
     args = args()
     config = parse_config_file(args.config_file)
@@ -147,4 +165,5 @@ if __name__ == "__main__":
         source_sound=args.source_sound,
         target_sound=args.target_sound,
         render_to_dac=args.render_to_dac,
+        live_mode=args.live_mode,
     )
