@@ -9,4 +9,5 @@ exclude =
 	rave/.ipynb_checkpoints,
 	.flake8,
 	.pre-commit-config.yaml,
-	pyproject.toml,
+	*.toml,
+	*.jinja2

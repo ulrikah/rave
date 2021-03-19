@@ -1,0 +1,14 @@
+; high-pass
+aWet butterhp aIn,  k_hp_freq1
+
+; four bandpass filters
+aWet butterbp aWet, k_bp_freq1, k_bandwidth1 * k_bp_freq1
+aWet butterbp aWet, k_bp_freq2, k_bandwidth2 * k_bp_freq2
+aWet butterbp aWet, k_bp_freq3, k_bandwidth3 * k_bp_freq3
+aWet butterbp aWet, k_bp_freq4, k_bandwidth4 * k_bp_freq4
+
+; low-pass
+aWet butterlp aWet, k_lp_freq2
+
+; post gain
+aOut = aWet*k_post_gain
