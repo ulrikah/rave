@@ -30,6 +30,14 @@ def args():
         help="Path to a checkpoint from a training session (for resuming training)",
     )
 
+    parser.add_argument(
+        "--label",
+        dest="label",
+        action="store",
+        default=None,
+        help="Label the training with a specific name",
+    )
+
     return parser.parse_args()
 
 
@@ -79,7 +87,7 @@ def train(config: dict, checkpoint_path: str = None):
         name = path.parent.parent.parent.name
     else:
         agent_name = sac.__name__.split(".")[-1].upper()  # i.e. 'SAC or 'PPO
-        name = f'{agent_name}_{config["name"]}_{timestamp(millis=False)}'
+        name = f'{config["name"]}_{agent_name}_{timestamp(millis=False)}'
 
     progress_reporter = CLIReporter(max_report_frequency=15)
 
@@ -99,5 +107,8 @@ def train(config: dict, checkpoint_path: str = None):
 if __name__ == "__main__":
     args = args()
     config = parse_config_file(args.config_file)
-    config["name"] = Path(args.config_file).stem
+    if args.label:
+        config["name"] = args.label
+    else:
+        config["name"] = Path(args.config_file).stem
     train(config, args.checkpoint_path)
