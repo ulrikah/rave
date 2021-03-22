@@ -9,6 +9,7 @@ ksmps = {{ ksmps }}
 nchnls = 1
 0dbfs = 1
 
+gifftsize = {{ ksmps * 2 }}
 {% if receive_mapping_over_osc %}
 gihandle OSCinit {{osc_mapping_port}}
 {% endif %}

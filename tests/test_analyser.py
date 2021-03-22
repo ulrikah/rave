@@ -36,7 +36,7 @@ def test_all_extractors_use_same_audio_input():
 def test_globals_are_included():
     features = ["spectral"]
     analyser = Analyser(features)
-    global_variables = ["gifftsize", "giFftTabSize", "gifna", "gifnf"]
+    global_variables = ["giFftTabSize", "gifna", "gifnf"]
     for gv in global_variables:
         assert gv in analyser.analyser_csd
 
@@ -58,11 +58,14 @@ def test_feature_extractors_output_something():
         # the other extractors depend on RMS for now
         analyser = Analyser(["rms", fe], audio_to_analyse=audio_to_analyse)
         analysis_features = analyser.analysis_features
+        ksmps = 64
         orc = f"""
         sr=44100
-        ksmps=64
+        ksmps={ksmps}
         nchnls=1
         0dbfs=1
+
+        gifftsize = {ksmps * 2}
 
         instr 1
         {audio_to_analyse} poscil 1.0, 220

@@ -1,6 +1,7 @@
 from rave.sound import Sound
 from rave.effect import Effect
 from rave.analyser import Analyser
+from rave.constants import KSMPS
 
 
 def test_dry_and_wet_are_not_the_same():
@@ -51,3 +52,10 @@ def test_two_dry_signals_yield_the_same_features():
         assert (
             dry1_chans == dry2_chans
         ), "Two dry signals should yield the same features"
+
+
+def test_fftsize_is_twice_the_size_of_ksmps():
+    sound = Sound("amen.wav")
+    sound.prepare_to_render()
+    assert f"ksmps = {KSMPS}" in sound.csd
+    assert f"gifftsize = {KSMPS * 2}" in sound.csd
