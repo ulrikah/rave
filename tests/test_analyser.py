@@ -3,6 +3,8 @@ import ctcsound
 import numpy as np
 
 from rave.analyser import Analyser
+from rave.sound import Sound
+from rave.constants import KSMPS
 
 
 def test_analyser_initialisation():
@@ -41,7 +43,7 @@ def test_globals_are_included():
         assert gv in analyser.analyser_csd
 
 
-def test_osc_route_works():
+def test_osc_route_is_included():
     features = ["rms", "spectral"]
     osc_route = "/test/test/test"
     analyser = Analyser(features, osc_route=osc_route)
@@ -97,3 +99,27 @@ def test_feature_extractors_output_something():
         cs.cleanup()
         cs.reset()
         del cs
+
+
+# NOTE: this test verifies functionality that I hope won't stay very long
+# it's also not dependent on KSMPS yet, which is a drawback
+def test_spectral_extractor_updates_new_values_with_a_frequency_of_220_samples():
+    feature_extractors = ["rms", "spectral"]
+    analyser = Analyser(feature_extractors)
+    sound = Sound("amen.wav")
+    sound.prepare_to_render(analyser=analyser)
+
+    feature_matrix = []
+    k = 0
+    for i in range(10):
+        sound.render()
+        feature_matrix.append(sound.player.get_channels(analyser.analysis_features))
+        k += KSMPS
+    feature_matrix = np.array(feature_matrix)
+    rms = feature_matrix[:, 0]
+    assert len(set(rms)) == len(rms)  # RMS values should update every k
+    spread = feature_matrix[:, 2]
+    flatness = feature_matrix[:, 3]
+    # spread and flatness are only updated every 3 or 4 k with KSMPS=64
+    assert len(set(spread)) == 3
+    assert len(set(flatness)) == 3
