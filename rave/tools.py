@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import subprocess
 import datetime
 
+from rave.constants import KSMPS, SAMPLE_RATE
+
 
 def scale(v, a, b, c, d):
     """
@@ -14,12 +16,12 @@ def scale(v, a, b, c, d):
     return (v - a) * (d - c) / (b - a) + c
 
 
-def sec_per_k(ksmps=64, sr=44100):
+def sec_per_k(ksmps=KSMPS, sr=SAMPLE_RATE):
     """How many seconds are there in 1 k with sample rate sr?"""
     return ksmps / sr
 
 
-def k_per_sec(ksmps=64, sr=44100):
+def k_per_sec(ksmps=KSMPS, sr=SAMPLE_RATE):
     """How many k are there in 1 second of sample rate sr?"""
     return sr / ksmps
 
