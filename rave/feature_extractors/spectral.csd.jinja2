@@ -5,11 +5,6 @@
     fsin 			pvsanal	{{input}}, gifftsize, gifftsize/2, gifftsize, iwtype
     kflag   		pvsftw	fsin,gifna,gifnf          	; export  amps  and freqs to table,
 
-    kupdateRate		= 200
-    kmetro			metro kupdateRate
-    kdoflag			init 0
-    kdoflag			= (kdoflag + kmetro);*kgate
-
     ; copy pvs data from table to array
     ; analyse spectral features
     kArrA[]  		init    giFftTabSize
@@ -19,7 +14,7 @@
     kArrCorr[]  		init    giFftTabSize
     kflatness		init 0
 
-if (kdoflag > 0) && (kflag > 0) then
+if (kflag > 0) then
 
     kArrAprev[]		= kArrA
                     copyf2array kArrA, gifna
@@ -44,7 +39,6 @@ if (kdoflag > 0) && (kflag > 0) then
     od
     kflatness		divz exp(sumarray(log(kArrAlog))/giFftTabSize),  (ksumAmp/giFftTabSize), 0
     kflux           = 1-(divz(sumarray(kArrCorr),(sqrt(sumarray(kArrA^2))*sqrt(sumarray(kArrAprev^2))),0))
-    kdoflag 		= 0
 
 
 ; ** filter hack to keep spectral signals at the value analysed while sound level above noise floor

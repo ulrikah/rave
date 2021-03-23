@@ -3,6 +3,7 @@ import ctcsound
 import numpy as np
 
 from rave.analyser import Analyser
+from rave.sound import Sound
 
 
 def test_analyser_initialisation():
@@ -97,3 +98,31 @@ def test_feature_extractors_output_something():
         cs.cleanup()
         cs.reset()
         del cs
+
+
+def test_spectral_extractor_updates_new_values_every_frame_except_the_first():
+    feature_extractors = ["rms", "spectral"]
+    analyser = Analyser(feature_extractors)
+    sound = Sound("amen.wav")
+    sound.prepare_to_render(analyser=analyser)
+
+    feature_matrix = []
+    N = 10
+    for i in range(N):
+        sound.render()
+        feature_matrix.append(sound.player.get_channels(analyser.analysis_features))
+    feature_matrix = np.array(feature_matrix)
+    rms = feature_matrix[:, 0]
+    spread = feature_matrix[:, 2]
+    flatness = feature_matrix[:, 3]
+
+    # RMS values should update every k
+    assert len(set(rms)) == len(rms)
+
+    # spread and flatness update every k except the first
+    assert len(set(spread)) == N - 1
+    assert len(set(flatness)) == N - 1
+
+
+if __name__ == "__main__":
+    test_spectral_extractor_updates_new_values_every_frame_except_the_first()
