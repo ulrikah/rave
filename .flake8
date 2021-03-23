@@ -7,6 +7,7 @@ exclude =
 	.git,
 	__pycache__,
 	rave/.ipynb_checkpoints,
+	*.ipynb
 	.flake8,
 	.pre-commit-config.yaml,
 	*.toml,
