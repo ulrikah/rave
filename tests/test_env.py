@@ -1,4 +1,5 @@
 import numpy as np
+from pathlib import Path
 
 from rave.env import CrossAdaptiveEnv, CROSS_ADAPTIVE_DEFAULT_CONFIG
 from rave.constants import DEBUG_SUFFIX
@@ -148,7 +149,7 @@ def test_debug_mode_renders_channels_to_debug_wave_file():
 
 def test_env_inits_and_makes_first_step_correctly():
     env = CrossAdaptiveEnv()
-    empty_features = np.zeros(shape=len(env.analysis_features))
+    empty_features = np.zeros(shape=len(env.analyser.analysis_features))
     initial_state = env.get_state()
     assert np.array_equal(
         initial_state, np.concatenate((empty_features, empty_features))
@@ -179,7 +180,8 @@ def test_source_wet_is_equal_to_previous_source_dry_when_effect_is_thru():
     source_dry_features_after_first_step = env.source_dry_features.copy()
     source_wet_features_after_first_step = env.source_wet_features.copy()
     assert np.array_equal(
-        source_wet_features_after_first_step, np.zeros(shape=len(env.analysis_features))
+        source_wet_features_after_first_step,
+        np.zeros(shape=len(env.analyser.analysis_features)),
     )
     env.step(env.action_space.sample())
     source_dry_features_after_second_step = env.source_dry_features.copy()
@@ -216,3 +218,24 @@ def test_target_and_source_dry_has_no_effects():
     assert "aOut = aIn" in env.source_dry.csd
     assert "aOut = aIn" in env.target.csd
     assert "aOut = aIn" not in env.source_wet.csd
+
+
+def test_multiple_targets_are_allowed():
+    targets = ["amen_5s.wav", "drums_5s.wav"]
+    config = {
+        **CROSS_ADAPTIVE_DEFAULT_CONFIG.copy(),
+        "targets": targets,
+        "eval_interval": None,
+    }
+    env = CrossAdaptiveEnv(config)
+    assert Path(env.target.input).name == targets[0]
+    done = False
+    while not done:
+        action = env.action_space.sample()
+        _, _, done, _ = env.step(action)
+    assert Path(env.target.input).name == targets[1]
+    done = False
+    while not done:
+        action = env.action_space.sample()
+        _, _, done, _ = env.step(action)
+    assert Path(env.target.input).name == targets[0]

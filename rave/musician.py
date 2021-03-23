@@ -108,7 +108,6 @@ def main():
     if args.is_target:
         osc_route = OSC_TARGET_FEATURES_ROUTE
         # NOTE: temporary hack to loop the target sound
-        # input_source = config["env"]["target"]
         input_source = "amen_loop.wav"
         effect = None
         output_source = BLACKHOLE

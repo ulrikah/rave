@@ -89,7 +89,7 @@ def inference(
         "metric": config["env"]["metric"],
         "feature_extractors": config["env"]["feature_extractors"],
         "source": source_sound if source_sound else config["env"]["source"],
-        "target": target_sound if target_sound else config["env"]["target"],
+        "targets": [target_sound] if target_sound else config["env"]["targets"],
         "eval_interval": None,
         "render_to_dac": render_to_dac,
         "debug": config["env"]["debug"],

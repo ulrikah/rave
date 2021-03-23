@@ -10,16 +10,12 @@ from rave.standardizer import Standardizer
 from rave.tools import timestamp, scale
 from rave.constants import DAC, DEBUG_SUFFIX, DEVIATION_LIMIT
 
-AMEN = "amen_trim.wav"
-NOISE = "noise.wav"
-SINE = "sine220.wav"
-
 
 CROSS_ADAPTIVE_DEFAULT_CONFIG = {
     "effect": "dist_lpf",
     "metric": "l2",
-    "source": NOISE,
-    "target": AMEN,
+    "source": "noise_5s.wav",
+    "targets": ["amen_5s.wav"],
     "feature_extractors": ["rms", "pitch", "spectral"],
     "eval_interval": 1,
     "render_to_dac": False,
@@ -36,7 +32,9 @@ class CrossAdaptiveEnv(gym.Env):
         self._reset_internal_state()
 
         self.source_input = config["source"]
-        self.target_input = config["target"]
+        self.target_inputs = config["targets"]
+        assert type(self.target_inputs) is list, "Targets should be provided as a list"
+        self.target_index = 0
         self.effect = Effect(config["effect"])
         self.metric = metric_from_name(config["metric"])
         self.feature_extractors = config["feature_extractors"]
@@ -52,17 +50,20 @@ class CrossAdaptiveEnv(gym.Env):
             raise ValueError(
                 "The environment doesn't work without any feature extractors"
             )
-        analyser = Analyser(self.feature_extractors)
-        self.analysis_features = analyser.analysis_features
+        self.analyser = Analyser(self.feature_extractors)
         self.standardizer = Standardizer(
-            [Sound(self.source_input), Sound(self.target_input)], analyser
+            [
+                Sound(sound_input)
+                for sound_input in [self.source_input, *self.target_inputs]
+            ],
+            self.analyser,
         )
 
         # an observation = analysis of one source frame + one target frame
         self.observation_space = gym.spaces.Box(
             low=-DEVIATION_LIMIT,
             high=DEVIATION_LIMIT,
-            shape=(len(self.analysis_features) * 2,),
+            shape=(len(self.analyser.analysis_features) * 2,),
         )
 
         # an action = a combination of effect parameters
@@ -73,15 +74,15 @@ class CrossAdaptiveEnv(gym.Env):
         # initialize sound source
         self.source_dry = Sound(self.source_input)
         self.source_wet = Sound(self.source_input)
-        self.target = Sound(self.target_input)
+        self.target = Sound(self.target_inputs[self.target_index])
 
-        self.source_dry.prepare_to_render(effect=None, analyser=analyser)
-        self.source_wet.prepare_to_render(effect=self.effect, analyser=analyser)
-        self.target.prepare_to_render(effect=None, analyser=analyser)
+        self.source_dry.prepare_to_render(effect=None, analyser=self.analyser)
+        self.source_wet.prepare_to_render(effect=self.effect, analyser=self.analyser)
+        self.target.prepare_to_render(effect=None, analyser=self.analyser)
 
-        self.source_dry_features = np.zeros(shape=len(self.analysis_features))
-        self.source_wet_features = np.zeros(shape=len(self.analysis_features))
-        self.target_features = np.zeros(shape=len(self.analysis_features))
+        self.source_dry_features = np.zeros(shape=len(self.analyser.analysis_features))
+        self.source_wet_features = np.zeros(shape=len(self.analyser.analysis_features))
+        self.target_features = np.zeros(shape=len(self.analyser.analysis_features))
         self.should_delay_source_wet_one_frame = True
 
     def action_to_mapping(self, action: np.ndarray):
@@ -116,11 +117,11 @@ class CrossAdaptiveEnv(gym.Env):
 
     def render_and_get_features(self, sound: Sound, mapping=None):
         done = sound.render(mapping=mapping)
-        raw_features = sound.player.get_channels(self.analysis_features)
+        raw_features = sound.player.get_channels(self.analyser.analysis_features)
         standardized_features = np.array(
             [
                 self.standardizer.get_standardized_value(
-                    self.analysis_features[i], feature_value
+                    self.analyser.analysis_features[i], feature_value
                 )
                 for i, feature_value in enumerate(raw_features)
             ]
@@ -177,6 +178,12 @@ class CrossAdaptiveEnv(gym.Env):
         if source_dry_done:
             self.render()
             self._reset_internal_state()
+
+        # go to next target
+        if target_done and len(self.target_inputs) > 1:
+            self.target_index = (self.target_index + 1) % len(self.target_inputs)
+            self.target = Sound(self.target_inputs[self.target_index])
+            self.target.prepare_to_render(effect=None, analyser=self.analyser)
 
         if self.should_delay_source_wet_one_frame:
             self.should_delay_source_wet_one_frame = False

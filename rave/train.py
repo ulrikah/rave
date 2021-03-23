@@ -47,7 +47,7 @@ def train(config: dict, checkpoint_path: str = None):
         "metric": config["env"]["metric"],
         "feature_extractors": config["env"]["feature_extractors"],
         "source": config["env"]["source"],
-        "target": config["env"]["target"],
+        "targets": config["env"]["targets"],
         "eval_interval": config["env"]["eval_interval"],
         "render_to_dac": False,
         "debug": config["env"]["debug"],
