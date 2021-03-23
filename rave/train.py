@@ -63,6 +63,12 @@ def train(config: dict, checkpoint_path: str = None):
         "framework": "torch",
         "num_cpus_per_worker": config["ray"]["num_cpus_per_worker"],
         "log_level": config["ray"]["log_level"],
+        "learning_starts": 10000,
+        "optimization": {
+            "actor_learning_rate": learning_rate,
+            "critic_learning_rate": learning_rate,
+            "entropy_learning_rate": learning_rate,
+        },
         # Model options for the Q network(s).
         "Q_model": {
             "fcnet_activation": "tanh",
@@ -72,11 +78,6 @@ def train(config: dict, checkpoint_path: str = None):
         "policy_model": {
             "fcnet_activation": "tanh",
             "fcnet_hiddens": config["agent"]["hidden_layers"],
-        },
-        "optimization": {
-            "actor_learning_rate": learning_rate,
-            "critic_learning_rate": learning_rate,
-            "entropy_learning_rate": learning_rate,
         },
     }
 
