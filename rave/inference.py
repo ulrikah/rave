@@ -6,8 +6,6 @@ import numpy as np
 import argparse
 
 from rave.env import CrossAdaptiveEnv
-from rave.effect import Effect
-from rave.metrics import metric_from_name
 from rave.config import parse_config_file
 from rave.mediator import Mediator
 
@@ -87,8 +85,8 @@ def inference(
     ray.init(local_mode=config["ray"]["local_mode"])
 
     env_config = {
-        "effect": Effect(config["env"]["effect"]),
-        "metric": metric_from_name(config["env"]["metric"]),
+        "effect": config["env"]["effect"],
+        "metric": config["env"]["metric"],
         "feature_extractors": config["env"]["feature_extractors"],
         "source": source_sound if source_sound else config["env"]["source"],
         "target": target_sound if target_sound else config["env"]["target"],

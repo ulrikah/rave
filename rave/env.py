@@ -2,7 +2,7 @@ import gym
 import numpy as np
 import os
 
-from rave.metrics import EuclideanDistance
+from rave.metrics import metric_from_name
 from rave.effect import Effect
 from rave.analyser import Analyser
 from rave.sound import Sound
@@ -16,8 +16,8 @@ SINE = "sine220.wav"
 
 
 CROSS_ADAPTIVE_DEFAULT_CONFIG = {
-    "effect": Effect("bandpass"),
-    "metric": EuclideanDistance(),
+    "effect": "dist_lpf",
+    "metric": "l2",
     "source": NOISE,
     "target": AMEN,
     "feature_extractors": ["rms", "pitch", "spectral"],
@@ -37,8 +37,8 @@ class CrossAdaptiveEnv(gym.Env):
 
         self.source_input = config["source"]
         self.target_input = config["target"]
-        self.effect = config["effect"]
-        self.metric = config["metric"]
+        self.effect = Effect(config["effect"])
+        self.metric = metric_from_name(config["metric"])
         self.feature_extractors = config["feature_extractors"]
         self.render_to_dac = config["render_to_dac"]
         self.debug = config["debug"]

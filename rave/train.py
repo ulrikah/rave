@@ -6,8 +6,6 @@ from ray.rllib.agents import sac
 from ray.tune.progress_reporter import CLIReporter
 
 from rave.env import CrossAdaptiveEnv
-from rave.effect import Effect
-from rave.metrics import metric_from_name
 from rave.tools import timestamp
 from rave.config import parse_config_file
 from rave.constants import RAY_RESULTS_DIR
@@ -45,8 +43,8 @@ def train(config: dict, checkpoint_path: str = None):
     ray.init(local_mode=config["ray"]["local_mode"])
 
     env_config = {
-        "effect": Effect(config["env"]["effect"]),
-        "metric": metric_from_name(config["env"]["metric"]),
+        "effect": config["env"]["effect"],
+        "metric": config["env"]["metric"],
         "feature_extractors": config["env"]["feature_extractors"],
         "source": config["env"]["source"],
         "target": config["env"]["target"],

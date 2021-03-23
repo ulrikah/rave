@@ -1,7 +1,6 @@
 import numpy as np
 
 from rave.env import CrossAdaptiveEnv, CROSS_ADAPTIVE_DEFAULT_CONFIG
-from rave.effect import Effect
 from rave.constants import DEBUG_SUFFIX
 
 
@@ -174,7 +173,7 @@ def test_source_wet_is_delayed_by_one_k():
 
 
 def test_source_wet_is_equal_to_previous_source_dry_when_effect_is_thru():
-    config = {**CROSS_ADAPTIVE_DEFAULT_CONFIG, "effect": Effect("thru")}
+    config = {**CROSS_ADAPTIVE_DEFAULT_CONFIG, "effect": "thru"}
     env = CrossAdaptiveEnv(config)
     env.step(env.action_space.sample())
     source_dry_features_after_first_step = env.source_dry_features.copy()
