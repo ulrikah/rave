@@ -53,7 +53,7 @@ def train(config: dict, checkpoint_path: str = None):
         "debug": config["env"]["debug"],
     }
 
-    learning_rate = 3e-3
+    learning_rate = 3e-4
     agent_config = {
         **sac.DEFAULT_CONFIG.copy(),
         "env": CrossAdaptiveEnv,
@@ -88,7 +88,7 @@ def train(config: dict, checkpoint_path: str = None):
         agent_name = sac.__name__.split(".")[-1].upper()  # i.e. 'SAC or 'PPO'
         name = f'{config["name"]}_{agent_name}_{timestamp(millis=False)}'
 
-    progress_reporter = CLIReporter(max_report_frequency=15)
+    progress_reporter = CLIReporter(max_report_frequency=30)
 
     analysis = tune.run(
         sac.SACTrainer,
