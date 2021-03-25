@@ -54,7 +54,7 @@ class CrossAdaptiveEnv(gym.Env):
         self.analyser = Analyser(self.feature_extractors)
 
         # standardizer
-        self.standardize_rewards = True
+        self.standardize_rewards = False
         self.standardizer = Standardizer(
             [
                 Sound(sound_input)

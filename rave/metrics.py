@@ -18,6 +18,7 @@ def metric_from_name(name: str) -> AbstractMetric:
     return {
         "l1": AbsoluteValueNorm,
         "l2": EuclideanDistance,
+        "exp": ScaledEuclideanDistance,
     }[name]()
 
 
@@ -30,7 +31,7 @@ class AbsoluteValueNorm(AbstractMetric):
         """
         Computes the absolute value (L1) norm between two feature vectors
 
-        Normalizes output so that closer distances result in higher rewards
+        Scales output so that closer distances result in higher rewards
         """
         l1_norm = np.mean(np.abs(source - target))
         reward = 1.0 / (1.0 + l1_norm)
@@ -46,10 +47,31 @@ class EuclideanDistance(AbstractMetric):
         """
         Computes the euclidean distance (L2 norm) between two feature vectors
 
-        Normalizes output so that closer distances result in higher rewards
+        Scales output so that closer distances result in higher rewards
         """
         euclidean_distance = np.linalg.norm(source - target)
         reward = 1.0 / (1.0 + euclidean_distance)
+        assert self.is_in_range(
+            reward, self.reward_range
+        ), f"Reward {reward} is outside the requested range {self.reward_range}"
+        return reward
+
+
+class ScaledEuclideanDistance(AbstractMetric):
+    def __init__(self):
+        super().__init__()
+        self.reward_range = (np.exp(np.exp(0.0)), np.exp(np.exp(1.0)))
+
+    def calculate_reward(self, source: np.ndarray, target: np.ndarray):
+        """
+        Computes the euclidean distance (L2 norm) between two feature vectors
+
+        Scales output so that closer distances result in higher rewards,
+        but also emphasise the
+        """
+        euclidean_distance = np.linalg.norm(source - target)
+        reward = 1.0 / (1.0 + euclidean_distance)
+        reward = np.exp(np.exp(reward))
         assert self.is_in_range(
             reward, self.reward_range
         ), f"Reward {reward} is outside the requested range {self.reward_range}"
