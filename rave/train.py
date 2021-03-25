@@ -85,7 +85,7 @@ def train(config: dict, checkpoint_path: str = None):
         path = Path(checkpoint_path)
         name = path.parent.parent.parent.name
     else:
-        agent_name = sac.__name__.split(".")[-1].upper()  # i.e. 'SAC or 'PPO
+        agent_name = sac.__name__.split(".")[-1].upper()  # i.e. 'SAC or 'PPO'
         name = f'{config["name"]}_{agent_name}_{timestamp(millis=False)}'
 
     progress_reporter = CLIReporter(max_report_frequency=15)

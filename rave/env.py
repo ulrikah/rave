@@ -46,17 +46,22 @@ class CrossAdaptiveEnv(gym.Env):
         if self.eval_interval is not None:
             self.step_index = 0
 
+        # analyzer
         if not len(self.feature_extractors) > 0:
             raise ValueError(
                 "The environment doesn't work without any feature extractors"
             )
         self.analyser = Analyser(self.feature_extractors)
+
+        # standardizer
+        self.standardize_rewards = True
         self.standardizer = Standardizer(
             [
                 Sound(sound_input)
                 for sound_input in [self.source_input, *self.target_inputs]
             ],
             self.analyser,
+            self.metric if self.standardize_rewards else None,
         )
 
         # an observation = analysis of one source frame + one target frame
@@ -127,6 +132,14 @@ class CrossAdaptiveEnv(gym.Env):
             ]
         )
         return standardized_features, done
+
+    def calculate_reward(self, source, target):
+        assert source.shape == target.shape
+        reward = self.metric.calculate_reward(source, target)
+        if self.standardize_rewards:
+            reward = self.standardizer.get_standardized_reward(reward)
+        self.rewards.append(reward)
+        return reward
 
     def step(self, action: np.ndarray):
         """
@@ -200,12 +213,6 @@ class CrossAdaptiveEnv(gym.Env):
     def reset(self):
         # NOTE: rrlib calls reset internally, so to control the behavior this only returns the state
         return self.get_state()
-
-    def calculate_reward(self, source, target):
-        assert source.shape == target.shape
-        reward = self.metric.calculate_reward(source, target)
-        self.rewards.append(reward)
-        return reward
 
     def close(self):
         for sound in [self.source_dry, self.source_wet, self.target]:
