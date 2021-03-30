@@ -3,6 +3,8 @@ import argparse
 import ray
 from ray import tune
 from ray.rllib.agents import sac
+from ray.rllib.agents import ppo
+
 from ray.tune.progress_reporter import CLIReporter
 
 from rave.env import CrossAdaptiveEnv
@@ -54,30 +56,57 @@ def train(config: dict, checkpoint_path: str = None):
     }
 
     learning_rate = 3e-4
-    agent_config = {
-        **sac.DEFAULT_CONFIG.copy(),
-        "env": CrossAdaptiveEnv,
-        "env_config": env_config,
-        "framework": "torch",
-        "num_cpus_per_worker": config["ray"]["num_cpus_per_worker"],
-        "log_level": config["ray"]["log_level"],
-        "learning_starts": 10000,
-        "optimization": {
-            "actor_learning_rate": learning_rate,
-            "critic_learning_rate": learning_rate,
-            "entropy_learning_rate": learning_rate,
-        },
-        # Model options for the Q network(s).
-        "Q_model": {
-            "fcnet_activation": "tanh",
-            "fcnet_hiddens": config["agent"]["hidden_layers"],
-        },
-        # Model options for the policy function.
-        "policy_model": {
-            "fcnet_activation": "tanh",
-            "fcnet_hiddens": config["agent"]["hidden_layers"],
-        },
-    }
+    hidden_layers = config["agent"]["hidden_layers"]
+    tanh = "tanh"
+
+    def sac_trainer():
+        agent_name = "SAC"
+        sac_config = {
+            **sac.DEFAULT_CONFIG.copy(),
+            "env": CrossAdaptiveEnv,
+            "env_config": env_config,
+            "framework": "torch",
+            "num_cpus_per_worker": config["ray"]["num_cpus_per_worker"],
+            "log_level": config["ray"]["log_level"],
+            "learning_starts": 10000,
+            "optimization": {
+                "actor_learning_rate": learning_rate,
+                "critic_learning_rate": learning_rate,
+                "entropy_learning_rate": learning_rate,
+            },
+            # Model options for the Q network(s).
+            "Q_model": {
+                "fcnet_activation": tanh,
+                "fcnet_hiddens": hidden_layers,
+            },
+            # Model options for the policy function.
+            "policy_model": {
+                "fcnet_activation": tanh,
+                "fcnet_hiddens": hidden_layers,
+            },
+        }
+        return sac.SACTrainer, sac_config, agent_name
+
+    def ppo_trainer():
+        agent_name = "PPO"
+        ppo_config = {
+            **ppo.DEFAULT_CONFIG.copy(),
+            "env": CrossAdaptiveEnv,
+            "env_config": env_config,
+            "framework": "torch",
+            "num_cpus_per_worker": config["ray"]["num_cpus_per_worker"],
+            "num_workers": 0,
+            "log_level": config["ray"]["log_level"],
+            "lr": learning_rate,
+            "model": {
+                "fcnet_hiddens": hidden_layers,
+                "fcnet_activation": tanh,
+            },
+        }
+        return ppo.PPOTrainer, ppo_config, agent_name
+
+    # TODO: set up a mechanism in config for selecting trainer
+    trainer, agent_config, agent_name = sac_trainer()
 
     if checkpoint_path:
         # NOTE: hacky way to find the corresponding Tune 'name' of the
@@ -85,13 +114,12 @@ def train(config: dict, checkpoint_path: str = None):
         path = Path(checkpoint_path)
         name = path.parent.parent.parent.name
     else:
-        agent_name = sac.__name__.split(".")[-1].upper()  # i.e. 'SAC or 'PPO'
-        name = f'{config["name"]}_{agent_name}_{timestamp(millis=False)}'
+        name = f'{config["label"]}_{agent_name}_{timestamp(millis=False)}'
 
     progress_reporter = CLIReporter(max_report_frequency=30)
 
     analysis = tune.run(
-        sac.SACTrainer,
+        trainer,
         config=agent_config,
         local_dir=RAY_RESULTS_DIR,
         checkpoint_at_end=config["agent"]["checkpoint_at_end"],
@@ -107,7 +135,7 @@ if __name__ == "__main__":
     args = args()
     config = parse_config_file(args.config_file)
     if args.label:
-        config["name"] = args.label
+        config["label"] = args.label
     else:
-        config["name"] = Path(args.config_file).stem
+        config["label"] = Path(args.config_file).stem
     train(config, args.checkpoint_path)
