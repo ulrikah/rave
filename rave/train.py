@@ -55,7 +55,11 @@ def train(config: dict, checkpoint_path: str = None):
         "debug": config["env"]["debug"],
     }
 
-    learning_rate = 3e-4
+    learning_rate = (
+        config["agent"]["learning_rate"]
+        if "learning_rate" in config["agent"].keys()
+        else 3e-4
+    )
     hidden_layers = config["agent"]["hidden_layers"]
     tanh = "tanh"
 
