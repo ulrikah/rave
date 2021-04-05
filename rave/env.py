@@ -116,6 +116,9 @@ class CrossAdaptiveEnv(gym.Env):
         This mapping trick is an idea borrowed from Jordal (2017) and Walsh (2008).
         """
         scaled_x = scale(x, -1, 1, 0, 1)
+        if scaled_x == 0:
+            # Avoiding np.log(0) which yields "RuntimeWarning: divide by zero encountered in log"
+            return min_value
         return min_value + (max_value - min_value) * np.exp(
             np.log(scaled_x) / skew_factor
         )
