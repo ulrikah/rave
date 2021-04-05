@@ -13,7 +13,7 @@ from rave.mediator import Mediator
 def args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-c",
+        "--ckp",
         "--checkpoint",
         dest="checkpoint_path",
         action="store",
