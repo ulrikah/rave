@@ -1,19 +1,25 @@
 import numpy as np
-from itertools import combinations
+from collections import deque
 
 from rave.sound import Sound
 from rave.analyser import Analyser
 from rave.constants import DEVIATION_LIMIT
-from rave.metrics import AbstractMetric, EuclideanDistance
 
 
 class Standardizer:
     def __init__(
-        self, sounds: [Sound], analyser: Analyser, metric: AbstractMetric = None
+        self, sounds: [Sound], analyser: Analyser, reward_norm_batch_size=None
     ):
         self.sounds = sounds
         self.analyser = analyser
-        self.metric = metric
+        if reward_norm_batch_size is not None:
+            if not reward_norm_batch_size > 0:
+                raise ValueError(
+                    "The batch used for reward normalisation must be greater than zero"
+                )
+            self.reward_norm_batch_size = reward_norm_batch_size
+            self.reward_norm_batch = deque(maxlen=reward_norm_batch_size)
+
         # not supported yet due to some unexpected peaks in the analysis signal
         if "mfcc" in map(
             lambda feature: feature["name"], self.analyser.feature_extractors
@@ -42,22 +48,6 @@ class Standardizer:
             sounds_features.append(np.array(sound_features))
 
         stats = {}
-        # stats for reward calculations
-        if self.metric is not None:
-            rewards = []
-            for sound_a, sound_b in combinations(sounds_features, 2):
-                assert sound_a.shape == sound_b.shape
-                rows = sound_a.shape[0]
-                for i in range(rows):
-                    rewards.append(self.metric.calculate_reward(sound_a[i], sound_b[i]))
-            rewards = np.array(rewards)
-            stats["reward"] = {
-                "mean": np.mean(rewards),
-                "std": np.std(rewards),
-                "min": np.min(rewards),
-                "max": np.max(rewards),
-            }
-
         # matrix of all features concatenated together
         all_features = np.concatenate(
             [_sound_features for _sound_features in sounds_features], dtype=float
@@ -91,21 +81,26 @@ class Standardizer:
         return standardized_value
 
     def get_standardized_reward(self, reward: float):
-        if not self.stats or "reward" not in self.stats.keys():
-            raise ValueError("Statistics have not been calculated for the reward")
-        reward_stats = self.stats["reward"]
-        if reward_stats["std"] == 0.0:
-            standardized_reward = reward - reward_stats["mean"]
+        if len(self.reward_norm_batch) == self.reward_norm_batch_size:
+            mean = np.mean(self.reward_norm_batch)
+            std = np.std(self.reward_norm_batch)
+            if std == 0.0:
+                standardized_reward = reward - mean
+            else:
+                standardized_reward = (reward - mean) / std
         else:
-            standardized_reward = (reward - reward_stats["mean"]) / reward_stats["std"]
+            # We don't have enough reward samples to standardize
+            standardized_reward = reward
+
+        # append the new reward after mean and std calculation
+        self.reward_norm_batch.append(reward)
         return standardized_reward
 
 
 if __name__ == "__main__":
     sounds = [Sound("noise_5s.wav"), Sound("drums_5s.wav")]
     a = Analyser(["rms", "pitch", "spectral"])
-    m = EuclideanDistance()
-    s = Standardizer(sounds, a, m)
+    s = Standardizer(sounds, a, 100)
 
     new_sound = Sound("drums_7s.wav")
     features = np.empty(shape=(len(a.analysis_features),))

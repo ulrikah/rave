@@ -54,14 +54,14 @@ class CrossAdaptiveEnv(gym.Env):
         self.analyser = Analyser(self.feature_extractors)
 
         # standardizer
-        self.standardize_rewards = False
+        self.standardize_rewards = True  # NOTE: experimental feature
         self.standardizer = Standardizer(
             [
                 Sound(sound_input)
                 for sound_input in [self.source_input, *self.target_inputs]
             ],
             self.analyser,
-            self.metric if self.standardize_rewards else None,
+            reward_norm_batch_size=20 if self.standardize_rewards else None,
         )
 
         # an observation = analysis of one source frame + one target frame
