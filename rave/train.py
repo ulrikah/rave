@@ -52,6 +52,7 @@ def train(config: dict, checkpoint_path: str = None):
         "targets": config["env"]["targets"],
         "eval_interval": config["env"]["eval_interval"],
         "render_to_dac": False,
+        "standardize_rewards": True,  # NOTE: experimental feature
         "debug": config["env"]["debug"],
     }
 
@@ -111,6 +112,23 @@ def train(config: dict, checkpoint_path: str = None):
 
     # TODO: set up a mechanism in config for selecting trainer
     trainer, agent_config, agent_name = sac_trainer()
+
+    ###############
+    # Hyperparameter search
+
+    # -6 is what auto would have set for dist_lpf
+    target_entropies = [-4, -6, -8, -10]
+
+    agent_config = tune.grid_search(
+        [
+            {
+                **agent_config.copy(),
+                "target_entropy": target_entropy,
+            }
+            for target_entropy in target_entropies
+        ]
+    )
+    ###############
 
     if checkpoint_path:
         # NOTE: hacky way to find the corresponding Tune 'name' of the

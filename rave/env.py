@@ -19,6 +19,7 @@ CROSS_ADAPTIVE_DEFAULT_CONFIG = {
     "feature_extractors": ["rms", "pitch", "spectral"],
     "eval_interval": 1,
     "render_to_dac": False,
+    "standardize_rewards": False,
     "debug": False,
 }
 
@@ -40,6 +41,9 @@ class CrossAdaptiveEnv(gym.Env):
         self.feature_extractors = config["feature_extractors"]
         self.render_to_dac = config["render_to_dac"]
         self.debug = config["debug"]
+        self.standardize_rewards = config[
+            "standardize_rewards"
+        ]  # NOTE: experimental feature
 
         # how often the model should evaluate
         self.eval_interval = config["eval_interval"]
@@ -54,7 +58,6 @@ class CrossAdaptiveEnv(gym.Env):
         self.analyser = Analyser(self.feature_extractors)
 
         # standardizer
-        self.standardize_rewards = False  # NOTE: experimental feature
         self.standardizer = Standardizer(
             [
                 Sound(sound_input)

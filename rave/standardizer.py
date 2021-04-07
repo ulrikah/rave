@@ -100,28 +100,29 @@ class Standardizer:
 if __name__ == "__main__":
     sounds = [Sound("noise_5s.wav"), Sound("drums_5s.wav")]
     a = Analyser(["rms", "pitch", "spectral"])
-    s = Standardizer(sounds, a, 100)
+    s = Standardizer(sounds, a)
+    print(s.stats)
 
-    new_sound = Sound("drums_7s.wav")
-    features = np.empty(shape=(len(a.analysis_features),))
-    new_sound.prepare_to_render(analyser=a)
-    done = False
-    while not done:
-        done = new_sound.render()
-        frame_features = np.array(new_sound.player.get_channels(a.analysis_features))
-        if (frame_features > 1.0).any() or (frame_features < 0.0).any():
-            # NOTE: hacky way of filtering out outliars since Csound params are supposed to be limited (?)
-            # TODO: log how often this happens and try to debug it
-            continue
-        else:
-            features = np.vstack((features, frame_features))
-    # remove initial row
-    features = features[1:, :]
+    # new_sound = Sound("drums_7s.wav")
+    # features = np.empty(shape=(len(a.analysis_features),))
+    # new_sound.prepare_to_render(analyser=a)
+    # done = False
+    # while not done:
+    #     done = new_sound.render()
+    #     frame_features = np.array(new_sound.player.get_channels(a.analysis_features))
+    #     if (frame_features > 1.0).any() or (frame_features < 0.0).any():
+    #         # NOTE: hacky way of filtering out outliars since Csound params are supposed to be limited (?)
+    #         # TODO: log how often this happens and try to debug it
+    #         continue
+    #     else:
+    #         features = np.vstack((features, frame_features))
+    # # remove initial row
+    # features = features[1:, :]
 
-    for row in features[
-        100:1000,
-    ]:
-        for i, feature in enumerate(a.analysis_features):
-            value = row[i]
-            print(feature, "\t", s.get_standardized_value(feature, value))
-        print("\n")
+    # for row in features[
+    #     100:1000,
+    # ]:
+    #     for i, feature in enumerate(a.analysis_features):
+    #         value = row[i]
+    #         print(feature, "\t", s.get_standardized_value(feature, value))
+    #     print("\n")
