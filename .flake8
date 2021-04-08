@@ -11,4 +11,5 @@ exclude =
 	.flake8,
 	.pre-commit-config.yaml,
 	*.toml,
-	*.jinja2
+	*.jinja2,
+	poetry.lock
