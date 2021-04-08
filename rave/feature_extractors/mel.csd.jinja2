@@ -1,0 +1,29 @@
+; ***************
+; cepstrum, mfcc
+
+ibins init 8
+kIn[] init gifftsize
+kcnt init 0
+kIn shiftin {{input}}
+kcnt += ksmps
+if kcnt == gifftsize then
+    kFFT[] = rfft(kIn)
+    kPows[] = pows(kFFT)
+    kMFB[] = log(mfb(kPows,300,8000,ibins))
+    kmfcc[] = dct(kMFB)
+    kcnt = 0
+endif
+
+
+; ***************
+; return features
+
+; amount of bins should correspond to ibins
+chnset kmfcc[0],      "kmel0"
+chnset kmfcc[1],      "kmel1"
+chnset kmfcc[2],      "kmel2"
+chnset kmfcc[3],      "kmel3"
+chnset kmfcc[4],      "kmel4"
+chnset kmfcc[5],      "kmel5"
+chnset kmfcc[6],      "kmel6"
+chnset kmfcc[7],      "kmel7"

@@ -1,0 +1,13 @@
+{
+    "input": "aAnalyserInput",
+    "output_channels": [
+        "kmel0",
+        "kmel1",
+        "kmel2",
+        "kmel3",
+        "kmel4",
+        "kmel5",
+        "kmel6",
+        "kmel7"
+    ]
+}

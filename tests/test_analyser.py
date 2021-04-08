@@ -124,5 +124,19 @@ def test_spectral_extractor_updates_new_values_every_frame_except_the_first():
     assert len(set(flatness)) == N - 1
 
 
-if __name__ == "__main__":
-    test_spectral_extractor_updates_new_values_every_frame_except_the_first()
+def test_new_mel():
+    feature_extractors = ["rms", "mel"]
+    analyser = Analyser(feature_extractors)
+    sound = Sound("amen.wav")
+    sound.prepare_to_render(analyser=analyser)
+
+    feature_matrix = []
+    done = False
+    while not done:
+        done = sound.render()
+        feature_matrix.append(sound.player.get_channels(analyser.analysis_features))
+    feature_matrix = np.array(feature_matrix[1:])  # only mfcc bins
+
+    for i, feature in enumerate(analyser.analysis_features[1:]):  # skip RMS
+        assert feature_matrix[:, i - 1].mean() != 0
+        assert feature_matrix[:, i - 1].std() != 0
