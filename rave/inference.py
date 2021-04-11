@@ -92,6 +92,7 @@ def inference(
         "targets": [target_sound] if target_sound else config["env"]["targets"],
         "eval_interval": None,
         "render_to_dac": render_to_dac,
+        "standardize_rewards": False,  # NOTE: experimental feature
         "debug": config["env"]["debug"],
     }
 
@@ -151,6 +152,8 @@ def run_offline_inference(agent: Trainer, env: CrossAdaptiveEnv):
     obs = env.reset()
     while not done:
         action = agent.compute_action(obs)
+        # TODO: standardize action
+        # it might be difficult to standardize the action in live mode, but offline inference essentially work
         obs, _, done, _ = env.step(action)
 
 

@@ -23,6 +23,7 @@ def args():
         help="Path to a config file",
     )
     parser.add_argument(
+        "--ckp",
         "--checkpoint",
         dest="checkpoint_path",
         action="store",
@@ -52,7 +53,7 @@ def train(config: dict, checkpoint_path: str = None):
         "targets": config["env"]["targets"],
         "eval_interval": config["env"]["eval_interval"],
         "render_to_dac": False,
-        "standardize_rewards": True,  # NOTE: experimental feature
+        "standardize_rewards": False,  # NOTE: experimental feature
         "debug": config["env"]["debug"],
     }
 
@@ -116,18 +117,18 @@ def train(config: dict, checkpoint_path: str = None):
     # ###############
     # # Hyperparameter search
 
-    # # -6 is what auto would have set for dist_lpf
-    # target_entropies = [-4, -6, -8, -10]
+    # -6 is what auto would have set for dist_lpf
+    target_entropies = [-3]
 
-    # agent_config = tune.grid_search(
-    #     [
-    #         {
-    #             **agent_config.copy(),
-    #             "target_entropy": target_entropy,
-    #         }
-    #         for target_entropy in target_entropies
-    #     ]
-    # )
+    agent_config = tune.grid_search(
+        [
+            {
+                **agent_config.copy(),
+                "target_entropy": target_entropy,
+            }
+            for target_entropy in target_entropies
+        ]
+    )
     # ###############
 
     if checkpoint_path:
