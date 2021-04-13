@@ -74,7 +74,7 @@ def train(config: dict, checkpoint_path: str = None):
             "framework": "torch",
             "num_cpus_per_worker": config["ray"]["num_cpus_per_worker"],
             "log_level": config["ray"]["log_level"],
-            "learning_starts": 10000,
+            "learning_starts": 10000 if not checkpoint_path else 0,
             "optimization": {
                 "actor_learning_rate": learning_rate,
                 "critic_learning_rate": learning_rate,
@@ -117,18 +117,18 @@ def train(config: dict, checkpoint_path: str = None):
     # ###############
     # # Hyperparameter search
 
-    # -6 is what auto would have set for dist_lpf
-    target_entropies = [-3]
+    # # -6 is what auto would have set for dist_lpf
+    # target_entropies = [-3, -6, -12, -24, -48]
 
-    agent_config = tune.grid_search(
-        [
-            {
-                **agent_config.copy(),
-                "target_entropy": target_entropy,
-            }
-            for target_entropy in target_entropies
-        ]
-    )
+    # agent_config = tune.grid_search(
+    #     [
+    #         {
+    #             **agent_config.copy(),
+    #             "target_entropy": target_entropy,
+    #         }
+    #         for target_entropy in target_entropies
+    #     ]
+    # )
     # ###############
 
     if checkpoint_path:
@@ -150,7 +150,7 @@ def train(config: dict, checkpoint_path: str = None):
         name=name,
         restore=checkpoint_path,  # None is default
         progress_reporter=progress_reporter,
-        stop={"training_iteration": 1500},
+        stop={"training_iteration": 3000},
     )
     print(analysis)
 
