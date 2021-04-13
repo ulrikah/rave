@@ -60,7 +60,7 @@ def train(config: dict, checkpoint_path: str = None):
     learning_rate = (
         config["agent"]["learning_rate"]
         if "learning_rate" in config["agent"].keys()
-        else 3e-4
+        else 3e-3
     )
     hidden_layers = config["agent"]["hidden_layers"]
     tanh = "tanh"
@@ -75,6 +75,7 @@ def train(config: dict, checkpoint_path: str = None):
             "num_cpus_per_worker": config["ray"]["num_cpus_per_worker"],
             "log_level": config["ray"]["log_level"],
             "learning_starts": 10000 if not checkpoint_path else 0,
+            "target_entropy": -24,  # set empirically after trials with dist_lpf
             "optimization": {
                 "actor_learning_rate": learning_rate,
                 "critic_learning_rate": learning_rate,
