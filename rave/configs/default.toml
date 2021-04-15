@@ -14,6 +14,7 @@ eval_interval = 1
 debug = true
 
 [agent]
+agent = "sac"
 checkpoint_freq = 100
 checkpoint_at_end = true
 hidden_layers = [16]

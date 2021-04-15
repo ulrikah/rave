@@ -64,16 +64,22 @@ def train(config: dict, checkpoint_path: str = None):
     )
     hidden_layers = config["agent"]["hidden_layers"]
     tanh = "tanh"
+    common_config = {
+        "env": CrossAdaptiveEnv,
+        "env_config": env_config,
+        "framework": "torch",
+        "num_cpus_per_worker": config["ray"]["num_cpus_per_worker"],
+        "log_level": config["ray"]["log_level"],
+        "observation_filter": "MeanStdFilter",
+        "num_workers": 0,
+        "train_batch_size": 256,
+    }
 
     def sac_trainer():
         agent_name = "SAC"
         sac_config = {
             **sac.DEFAULT_CONFIG.copy(),
-            "env": CrossAdaptiveEnv,
-            "env_config": env_config,
-            "framework": "torch",
-            "num_cpus_per_worker": config["ray"]["num_cpus_per_worker"],
-            "log_level": config["ray"]["log_level"],
+            **common_config.copy(),
             "learning_starts": 10000 if not checkpoint_path else 0,
             "target_entropy": -24,  # set empirically after trials with dist_lpf
             "optimization": {
@@ -98,12 +104,7 @@ def train(config: dict, checkpoint_path: str = None):
         agent_name = "PPO"
         ppo_config = {
             **ppo.DEFAULT_CONFIG.copy(),
-            "env": CrossAdaptiveEnv,
-            "env_config": env_config,
-            "framework": "torch",
-            "num_cpus_per_worker": config["ray"]["num_cpus_per_worker"],
-            "num_workers": 0,
-            "log_level": config["ray"]["log_level"],
+            **common_config.copy(),
             "lr": learning_rate,
             "model": {
                 "fcnet_hiddens": hidden_layers,
@@ -112,8 +113,15 @@ def train(config: dict, checkpoint_path: str = None):
         }
         return ppo.PPOTrainer, ppo_config, agent_name
 
-    # TODO: set up a mechanism in config for selecting trainer
-    trainer, agent_config, agent_name = sac_trainer()
+    agent = config["agent"]["agent"]
+    available_trainers = ["sac", "ppo"]
+    no_agent_error = ValueError(f"{agent} not available")
+    if agent not in available_trainers:
+        raise no_agent_error
+    elif agent == "sac":
+        trainer, agent_config, agent_name = sac_trainer()
+    elif agent == "ppo":
+        trainer, agent_config, agent_name = ppo_trainer()
 
     # ###############
     # # Hyperparameter search
