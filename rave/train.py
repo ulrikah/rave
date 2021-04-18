@@ -110,6 +110,11 @@ def train(config: dict, checkpoint_path: str = None):
                 "fcnet_hiddens": hidden_layers,
                 "fcnet_activation": tanh,
             },
+            "sgd_minibatch_size": 64,
+            # Coefficient of the entropy regularizer. Unused if a schedule if set
+            "entropy_coeff": 0.0,
+            # Decay schedule for the entropy regularizer.
+            "entropy_coeff_schedule": None,
         }
         return ppo.PPOTrainer, ppo_config, agent_name
 
@@ -126,16 +131,15 @@ def train(config: dict, checkpoint_path: str = None):
     # ###############
     # # Hyperparameter search
 
-    # # -6 is what auto would have set for dist_lpf
-    # target_entropies = [-3, -6, -12, -24, -48]
+    # entropy_coeffs = [0.01 * i for i in range(4)]
 
     # agent_config = tune.grid_search(
     #     [
     #         {
     #             **agent_config.copy(),
-    #             "target_entropy": target_entropy,
+    #             "entropy_coeff": entropy_coeff,
     #         }
-    #         for target_entropy in target_entropies
+    #         for entropy_coeff in entropy_coeffs
     #     ]
     # )
     # ###############
