@@ -20,7 +20,8 @@ def arguments():
         "--config",
         dest="config_file",
         action="store",
-        required=True,
+        required=False,
+        default="default.toml",
         help="Path to a config file",
     )
     parser.add_argument(
