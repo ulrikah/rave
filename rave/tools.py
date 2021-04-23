@@ -1,12 +1,16 @@
 import librosa
 import librosa.display
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 
 import subprocess
 import datetime
 
 from rave.constants import KSMPS, SAMPLE_RATE
+
+# https://stackoverflow.com/questions/37470734/matplotlib-giving-error-overflowerror-in-draw-path-exceeded-cell-block-limit
+matplotlib.rcParams["agg.path.chunksize"] = 10000
 
 
 def scale(v, a, b, c, d):
@@ -94,11 +98,29 @@ def plot_wav(wav_file: str, save_to=None, sr=44100):
 
 
 def plot_wavs_on_top_of_eachother(wav_files: [str], save_to=None, sr=44100):
+    plt.figure(figsize=(12, 10))
     for wav_file in wav_files:
         samples = librosa.load(wav_file, sr)[0]
-        plt.plot(samples, linewidth=1, markersize=12)
+        plt.plot(samples, linewidth=0.5, markersize=12)
     plt.ylim(-1, 1)
     plt.legend(wav_files)
+    if save_to is not None:
+        plt.savefig(save_to)
+        print(save_to)
+    else:
+        plt.show()
+
+    plt.clf()
+    plt.cla()
+    plt.close()
+
+
+def plot_wavs(wav_files: [str], save_to=None, sr=44100):
+    fig, axs = plt.subplots(len(wav_files), figsize=(12, 10), sharex=True)
+    plt.ylim(-1, 1)
+    for i, wav_file in enumerate(wav_files):
+        samples = librosa.load(wav_file, sr)[0]
+        axs[i].plot(samples, linewidth=0.5, markersize=12)
     if save_to is not None:
         plt.savefig(save_to)
         print(save_to)
@@ -125,29 +147,22 @@ if __name__ == "__main__":
     # path = "rave/bounces/bandpass_*.wav"
     # wav_paths = glob.glob(path)
 
-    plot_wavs_on_top_of_eachother(
+    plot_wavs(
         [
-            "rave/input_audio/amen_trim.wav",
-            "rave/bounces/dist_lpf_render_2021-02-22_22-39-08_593788_noise.wav",  # rms, pitch, spectral
-            # "rave/bounces/dist_lpf_render_2021-02-22_12-21-10_045164_noise.wav", # only rms
-        ],
-        save_to=f"rave/plots/trained_noise_amen_rms_dist_lpf_{timestamp()}.jpg",
-    )
-    plot_wavs_on_top_of_eachother(
-        [
-            "rave/input_audio/amen_trim.wav",
-            "rave/input_audio/noise.wav",
-        ],
-        save_to=f"rave/plots/noise_amen_rms_dist_lpf_{timestamp()}.jpg",
+            "rave/input_audio/amen_5s.wav",
+            # "rave/input_audio/noise.wav",
+            # "rave/bounces/2021-04-18_21-32-47_872964_render_dist_lpf_noise_5s.wav",
+            "rave/bounces/2021-04-18_21-54-47_158831_render_gain_noise_5s.wav",
+        ]
     )
 
-    wav_paths = [
-        "rave/input_audio/noise.wav",
-        "rave/input_audio/amen_trim.wav",
-        "rave/bounces/dist_lpf_render_2021-02-22_22-39-08_593788_noise.wav",  # rms, pitch, spectral
-        "rave/bounces/dist_lpf_render_2021-02-22_12-21-10_045164_noise.wav",  # only rms
-    ]
-    for path in wav_paths:
-        y, sr = librosa.load(path, sr=44100)
-        S = np.abs(librosa.stft(y))
-        plot_melspectrogram(S)
+    # wav_paths = [
+    #     "rave/input_audio/noise.wav",
+    #     "rave/input_audio/amen_trim.wav",
+    #     "rave/bounces/dist_lpf_render_2021-02-22_22-39-08_593788_noise.wav",  # rms, pitch, spectral
+    #     "rave/bounces/dist_lpf_render_2021-02-22_12-21-10_045164_noise.wav",  # only rms
+    # ]
+    # for path in wav_paths:
+    #     y, sr = librosa.load(path, sr=44100)
+    #     S = np.abs(librosa.stft(y))
+    #     plot_melspectrogram(S)

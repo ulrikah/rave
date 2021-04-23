@@ -17,7 +17,8 @@ def metric_from_name(name: str) -> AbstractMetric:
     # raises a KeyError if no corresponding metric is found
     return {
         "l1": AbsoluteValueNorm,
-        "l2": EuclideanDistance,
+        "l2": InvertedEuclideanDistance,
+        "dissimilarity": EuclideanDistance,
     }[name]()
 
 
@@ -37,7 +38,7 @@ class AbsoluteValueNorm(AbstractMetric):
         return reward
 
 
-class EuclideanDistance(AbstractMetric):
+class InvertedEuclideanDistance(AbstractMetric):
     def __init__(self):
         super().__init__()
         self.reward_range = (0.0, 1.0)
@@ -53,4 +54,19 @@ class EuclideanDistance(AbstractMetric):
         assert self.is_in_range(
             reward, self.reward_range
         ), f"Reward {reward} is outside the requested range {self.reward_range}"
+        return reward
+
+
+class EuclideanDistance(AbstractMetric):
+    def __init__(self):
+        super().__init__()
+
+    def calculate_reward(self, source: np.ndarray, target: np.ndarray):
+        """
+        Computes the euclidean distance (L2 norm) between two feature vectors
+
+        The larger the distance, the higher the reward => optimize for dissimilarity
+        """
+        euclidean_distance = np.linalg.norm(source - target)
+        reward = euclidean_distance
         return reward
