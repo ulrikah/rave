@@ -139,9 +139,9 @@ class CrossAdaptiveEnv(gym.Env):
         )
         return standardized_features, done
 
-    def calculate_reward(self, source, target):
-        assert source.shape == target.shape
-        reward = self.metric.calculate_reward(source, target)
+    def calculate_reward(self, dry, wet, target):
+        assert dry.shape == wet.shape == target.shape
+        reward = self.metric.calculate_reward(dry, wet, target)
         if self.standardize_rewards:
             reward = self.standardizer.get_standardized_reward(reward)
         self.rewards.append(reward)
@@ -158,7 +158,7 @@ class CrossAdaptiveEnv(gym.Env):
         self.actions.append(action)
         mapping = self.action_to_mapping(action)
 
-        # the target features that were used to calculate the current action
+        source_dry_features_prev = self.source_dry_features.copy()
         target_features_prev = self.target_features.copy()
 
         # delay the rendering of the wet source sound one k
@@ -169,7 +169,7 @@ class CrossAdaptiveEnv(gym.Env):
                 self.source_wet, mapping=mapping
             )
             reward = self.calculate_reward(
-                self.source_wet_features, target_features_prev
+                source_dry_features_prev, self.source_wet_features, target_features_prev
             )
 
         # prepare next frame
