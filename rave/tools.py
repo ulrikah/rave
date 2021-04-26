@@ -75,6 +75,15 @@ def plot_mfcc(mfccs: np.ndarray, sr=44100):
     plt.show()
 
 
+def plot_spectrogram(y: np.ndarray, sr=44100):
+    D = librosa.stft(y)  # STFT of y
+    S_db = librosa.amplitude_to_db(np.abs(D), ref=np.max)
+    fig, ax = plt.subplots()
+    img = librosa.display.specshow(S_db, ax=ax, x_axis="time", y_axis="log")
+    fig.colorbar(img, ax=ax)
+    plt.show()
+
+
 def plot_1d(y: np.ndarray, title="RMS"):
     """
     Plots 1D numpy arrays along
@@ -147,22 +156,18 @@ if __name__ == "__main__":
     # path = "rave/bounces/bandpass_*.wav"
     # wav_paths = glob.glob(path)
 
-    plot_wavs(
-        [
-            "rave/input_audio/amen_5s.wav",
-            # "rave/input_audio/noise.wav",
-            # "rave/bounces/2021-04-18_21-32-47_872964_render_dist_lpf_noise_5s.wav",
-            "rave/bounces/2021-04-18_21-54-47_158831_render_gain_noise_5s.wav",
-        ]
-    )
+    paths = [
+        "/Users/ulrikah/fag/thesis/csound_sketches/noise_5s.wav",
+        # "/Users/ulrikah/fag/thesis/csound_sketches/noise_lpf.wav",
+        "/Users/ulrikah/fag/thesis/csound_sketches/noise_lpf_dist.wav",
+    ]
 
-    # wav_paths = [
-    #     "rave/input_audio/noise.wav",
-    #     "rave/input_audio/amen_trim.wav",
-    #     "rave/bounces/dist_lpf_render_2021-02-22_22-39-08_593788_noise.wav",  # rms, pitch, spectral
-    #     "rave/bounces/dist_lpf_render_2021-02-22_12-21-10_045164_noise.wav",  # only rms
-    # ]
-    # for path in wav_paths:
-    #     y, sr = librosa.load(path, sr=44100)
-    #     S = np.abs(librosa.stft(y))
-    #     plot_melspectrogram(S)
+    fig, axes = plt.subplots(ncols=len(paths), figsize=(10, 7), sharey=True)
+
+    for i, path in enumerate(paths):
+        y, sr = librosa.load(path, sr=SAMPLE_RATE)
+        D = librosa.stft(y)  # STFT of y
+        S_db = librosa.amplitude_to_db(np.abs(D), ref=np.max)
+        img = librosa.display.specshow(S_db, ax=axes[i], x_axis="time", y_axis="log")
+    fig.colorbar(img, ax=axes, format="%+2.f dB")
+    plt.show()
