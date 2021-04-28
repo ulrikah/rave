@@ -1,6 +1,7 @@
 import ray
 from ray.rllib.agents.trainer import Trainer
 from ray.rllib.agents import sac
+from ray.rllib.agents import ppo
 import numpy as np
 
 import argparse
@@ -96,29 +97,82 @@ def inference(
         "debug": config["env"]["debug"],
     }
 
-    agent_config = {
-        **sac.DEFAULT_CONFIG.copy(),
+    learning_rate = (
+        config["agent"]["learning_rate"]
+        if "learning_rate" in config["agent"].keys()
+        else 3e-3
+    )
+
+    hidden_layers = config["agent"]["hidden_layers"]
+    tanh = "tanh"
+
+    common_config = {
         "env": CrossAdaptiveEnv,
         "env_config": env_config,
         "framework": "torch",
         "num_cpus_per_worker": config["ray"]["num_cpus_per_worker"],
         "log_level": config["ray"]["log_level"],
-        # Model options for the Q network(s).
-        "Q_model": {
-            "fcnet_activation": "tanh",
-            "fcnet_hiddens": config["agent"]["hidden_layers"],
-        },
-        # Model options for the policy function.
-        "policy_model": {
-            "fcnet_activation": "tanh",
-            "fcnet_hiddens": config["agent"]["hidden_layers"],
-        },
+        "observation_filter": "MeanStdFilter",
+        "num_workers": 0,
+        "train_batch_size": 256,
         "explore": False,
-        # "clip_actions": False,
     }
 
+    def sac_trainer():
+        agent_name = "SAC"
+        sac_config = {
+            **sac.DEFAULT_CONFIG.copy(),
+            **common_config.copy(),
+            "learning_starts": 10000 if not checkpoint_path else 0,
+            "target_entropy": -24,  # set empirically after trials with dist_lpf
+            "optimization": {
+                "actor_learning_rate": learning_rate,
+                "critic_learning_rate": learning_rate,
+                "entropy_learning_rate": learning_rate,
+            },
+            # Model options for the Q network(s).
+            "Q_model": {
+                "fcnet_activation": tanh,
+                "fcnet_hiddens": hidden_layers,
+            },
+            # Model options for the policy function.
+            "policy_model": {
+                "fcnet_activation": tanh,
+                "fcnet_hiddens": hidden_layers,
+            },
+        }
+        return sac.SACTrainer, sac_config, agent_name
+
+    def ppo_trainer():
+        agent_name = "PPO"
+        ppo_config = {
+            **ppo.DEFAULT_CONFIG.copy(),
+            **common_config.copy(),
+            "lr": learning_rate,
+            "model": {
+                "fcnet_hiddens": hidden_layers,
+                "fcnet_activation": tanh,
+            },
+            "sgd_minibatch_size": 64,
+            # Coefficient of the entropy regularizer. Unused if a schedule if set
+            "entropy_coeff": 0.0,
+            # Decay schedule for the entropy regularizer.
+            "entropy_coeff_schedule": None,
+        }
+        return ppo.PPOTrainer, ppo_config, agent_name
+
+    agent = config["agent"]["agent"]
+    available_trainers = ["sac", "ppo"]
+    no_agent_error = ValueError(f"{agent} not available")
+    if agent not in available_trainers:
+        raise no_agent_error
+    elif agent == "sac":
+        trainer, agent_config, agent_name = sac_trainer()
+    elif agent == "ppo":
+        trainer, agent_config, agent_name = ppo_trainer()
+
     env = CrossAdaptiveEnv(env_config)
-    agent = sac.SACTrainer(config=agent_config)
+    agent = trainer(config=agent_config)
     agent.restore(checkpoint_path)
 
     if live_mode:
