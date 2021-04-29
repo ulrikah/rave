@@ -35,6 +35,11 @@ class Mediator:
                 print("[UNHANDLED]", address, *args)
 
             self.osc_server.register_default_handler(log_handler)
+
+        # placeholders for future values
+        self.source = None
+        self.target = None
+
         if run:
             self.run()
 
@@ -59,10 +64,17 @@ class Mediator:
     def get_features(self):
         """
         Pops an array of features off both queues and converts them to numpy arrays
+
+        NB: this does not pop features of the stack if only one of the queues have
+        new entries. For those cases, None is returned
         """
-        source_features = self.get_source_features()
-        target_features = self.get_target_features()
-        return source_features, target_features
+
+        source = self.get_source_features()
+        target = self.get_target_features()
+        if source is None or target is None:
+            return None, None
+        else:
+            return source, target
 
     def get_source_features(self, blocking=True):
         try:
@@ -103,3 +115,7 @@ class Mediator:
             self.osc_server_thread = None
         else:
             raise Exception("Attempting to terminate thread before it started")
+
+
+if __name__ == "__main__":
+    mediator = Mediator(monitor=True)

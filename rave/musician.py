@@ -114,6 +114,7 @@ def main():
         output_source = BLACKHOLE
     else:
         osc_route = OSC_SOURCE_FEATURES_ROUTE
+        # NOTE: temporary hack to loop the source sound
         input_source = "noise_loop.wav"
         effect = Effect(config["env"]["effect"])
         output_source = DAC
@@ -127,7 +128,7 @@ def main():
         effect=effect,
         input_source=input_source,
         output_source=output_source,
-        duration=100,
+        duration=1000,
         is_target=args.is_target,
     )
     musician.start()
