@@ -47,8 +47,11 @@ def test_osc_route_is_included():
     osc_route = "/test/test/test"
     analyser = Analyser(features, osc_route=osc_route)
     assert "OSCsend" in analyser.analyser_csd
-    fff = f"\"{'f' * len(analyser.analysis_features)}\""
-    assert f'{fff}, {", ".join(analyser.analysis_features)}' in analyser.analyser_csd
+    dfff = f"\"d{'f' * len(analyser.analysis_features)}\""
+    assert (
+        f'{dfff}, ktimestamp, {", ".join(analyser.analysis_features)}'
+        in analyser.analyser_csd
+    )
     assert osc_route in analyser.analyser_csd
 
 

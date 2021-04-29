@@ -38,7 +38,11 @@ if __name__ == "__main__":
             f"{address} | rms {rms} | pitch {pitch} | centroid {centroid} | flux {flux}"
         )
 
+    def time_handler(address, time):
+        print(f"{address} | time {time}")
+
     server = OscServer()
     server.register_handler("/rave/features", features_handler)
+    server.register_handler("/rave/time", time_handler)
     server.register_default_handler(log_handler)
     server.serve()

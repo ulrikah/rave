@@ -112,7 +112,7 @@ def inference(
         "framework": "torch",
         "num_cpus_per_worker": config["ray"]["num_cpus_per_worker"],
         "log_level": config["ray"]["log_level"],
-        "observation_filter": "MeanStdFilter",
+        # "observation_filter": "MeanStdFilter",  # NB! some (old) runs didn't not include this, so that might cause crashes
         "num_workers": 0,
         "train_batch_size": 256,
         "explore": False,
@@ -188,14 +188,35 @@ def run_live_inference(
     mediator = Mediator()
 
     episode_index = 0
-    while episode_index < 10000:
+    while episode_index < 1500:
         source_features, target_features = mediator.get_features()
         if source_features is None or target_features is None:
             continue
-        obs = np.concatenate((source_features, target_features))
+
+        standardized_source = np.array(
+            [
+                env.standardizer.get_standardized_value(
+                    env.analyser.analysis_features[i], feature_value
+                )
+                for i, feature_value in enumerate(source_features)
+            ]
+        )
+        standardized_target = np.array(
+            [
+                env.standardizer.get_standardized_value(
+                    env.analyser.analysis_features[i], feature_value
+                )
+                for i, feature_value in enumerate(target_features)
+            ]
+        )
+        obs = np.concatenate((standardized_source, standardized_target))
+        print(np.round(obs, decimals=2))
         action = agent.compute_action(obs)
+        # action = env.action_space.sample()
         mapping = env.action_to_mapping(action)
+        # print(mapping)
         mediator.send_effect_mapping(mapping)
+        episode_index += 1
     mediator.terminate()
     print("\n\n\tDONE\n\n")
 

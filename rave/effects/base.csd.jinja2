@@ -23,7 +23,10 @@ instr	1
     k_{{ ch.name }} init {{ ch.value }}
     {% endfor %}
     k_ans OSClisten gihandle, "{{osc_mapping_route}}", "{{"f" * channels|length}}" {% for ch in channels %}, k_{{ ch.name }}{% endfor %}
-    printk 0, k_ans
+
+    if (k_ans == 1) then
+        printks "{{"%f" * channels|length}} \n", 0 {% for ch in channels %}, k_{{ ch.name }}{% endfor %}
+    endif
 
 {% else %}
     {% for channel in channels %}

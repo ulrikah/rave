@@ -1,4 +1,6 @@
 from pythonosc.udp_client import SimpleUDPClient
+import time
+import numpy as np
 
 
 class OscClient:
@@ -10,5 +12,7 @@ class OscClient:
 
 
 if __name__ == "__main__":
-    c = OscClient()
-    c.send_message("/rave/mapping", [0.3, 0.1])
+    c = OscClient(port=1234)
+    while True:
+        c.send_message("/rave/mapping", np.random.uniform(low=0.5, high=3.0, size=6))
+        time.sleep(0.1)

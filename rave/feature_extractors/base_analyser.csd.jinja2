@@ -35,9 +35,13 @@ aAnalyserInput = {{input}}
 ; ***************
 ; metro
 
+istart date
+ktime times
+ktimestamp = istart + ktime
+
 kwhen           init 0
 kwhen           += 1
 
-OSCsend kwhen, $IP_ADDRESS, $PORT, "{{ osc_route }}", "{{"f" * osc_channels|length}}", {{ osc_channels|join(", ") }}
+OSCsend kwhen, $IP_ADDRESS, $PORT, "{{ osc_route }}", "d{{"f" * osc_channels|length}}", ktimestamp, {{ osc_channels|join(", ") }}
 
 {% endif %}

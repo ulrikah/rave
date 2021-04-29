@@ -49,4 +49,6 @@ def test_mediator_receives_values_from_musician():
 
     source_features = mediator.get_source_features(blocking=False)
     assert np.array(source_features).mean() > 0
-    assert np.array(source_features).size == len(analyser.analysis_features)
+    assert (
+        np.array(source_features).size == len(analyser.analysis_features) + 1
+    )  # account for timestamp
