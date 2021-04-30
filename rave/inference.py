@@ -192,6 +192,10 @@ def run_live_inference(
         source_features, target_features = mediator.get_features()
         if source_features is None or target_features is None:
             continue
+        else:
+            # trim off timestamp
+            source_features = source_features[1:]
+            target_features = target_features[1:]
 
         standardized_source = np.array(
             [

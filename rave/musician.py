@@ -38,6 +38,15 @@ def arguments():
         default=False,
         help="Enable live input from adc",
     )
+
+    parser.add_argument(
+        "--output",
+        dest="output",
+        action="store",
+        default=None,
+        help="Specify audio output",
+    )
+
     return parser.parse_args()
 
 
@@ -102,8 +111,7 @@ def main():
     args = arguments()
     config = parse_config_file(args.config_file)
 
-    # NOTE: at the current moment, this was the index of Blackhole,
-    # a virtual soundcard. this functions as a sink for all audio
+    # NOTE: practical constants to use while developing
     BLACKHOLE = "dac2"
 
     if args.is_target:
@@ -111,16 +119,19 @@ def main():
         # NOTE: temporary hack to loop the target sound
         input_source = "amen_loop.wav"
         effect = None
-        output_source = BLACKHOLE
+        output_source = DAC
     else:
         osc_route = OSC_SOURCE_FEATURES_ROUTE
         # NOTE: temporary hack to loop the source sound
         input_source = "noise_loop.wav"
         effect = Effect(config["env"]["effect"])
-        output_source = DAC
+        output_source = BLACKHOLE
 
     if args.live_mode:
         input_source = LIVE
+
+    if args.output:
+        output_source = args.output
 
     analyser = Analyser(config["env"]["feature_extractors"], osc_route=osc_route)
     musician = Musician(

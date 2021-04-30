@@ -1,9 +1,10 @@
 import queue
 from threading import Thread
+import math
 
 from rave.osc_server import OscServer
 from rave.osc_client import OscClient
-from rave.tools import sec_per_k
+from rave.tools import sec_per_k, k_per_sec
 from rave.constants import (
     OSC_ADDRESS,
     OSC_FEATURE_PORT,
@@ -18,15 +19,14 @@ from rave.constants import (
 class Mediator:
 
     QUEUE_SIZE = 1
-    MAX_K_DIFF = (
-        5  # Max amount of KSMPS between timestamp of source and target features
-    )
 
-    def __init__(self, run=True, monitor=False):
+    def __init__(self, run=True, monitor=False, max_k_diff=math.inf):
         self.osc_server = OscServer(ip_adress=OSC_ADDRESS, port=OSC_FEATURE_PORT)
         self.osc_client = OscClient(ip_adress=OSC_ADDRESS, port=OSC_MAPPING_PORT)
         self.source_q = queue.LifoQueue(maxsize=self.QUEUE_SIZE)
         self.target_q = queue.LifoQueue(maxsize=self.QUEUE_SIZE)
+
+        self.max_k_diff = max_k_diff  # Max amount of KSMPS between timestamp of source and target features
 
         self.osc_server.register_handler(
             OSC_SOURCE_FEATURES_ROUTE, self.add_source_features
@@ -83,8 +83,10 @@ class Mediator:
         s_time = source[0]
         t_time = target[0]
         diff = abs(s_time - t_time)
-        threshold = sec_per_k() * self.MAX_K_DIFF
+        threshold = sec_per_k() * self.max_k_diff
+        print("Diff", int(diff * k_per_sec()))
         if diff > threshold:
+            print(diff, threshold)
             return None, None
         return source, target
 
