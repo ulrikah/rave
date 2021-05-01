@@ -125,11 +125,25 @@ def plot_wavs_on_top_of_eachother(wav_files: [str], save_to=None, sr=44100):
 
 
 def plot_wavs(wav_files: [str], save_to=None, sr=44100):
-    fig, axs = plt.subplots(len(wav_files), figsize=(12, 10), sharex=True)
+    fig, axs = plt.subplots(len(wav_files), sharex=True, sharey=True)
+
     plt.ylim(-1, 1)
+
     for i, wav_file in enumerate(wav_files):
         samples = librosa.load(wav_file, sr)[0]
+
+        # Line labels
+        n_samples = len(samples)
+        n_xticks = 10
+        xtick_values = np.linspace(0, n_samples, num=n_xticks)
+        xtick_labels = [str(round(tick, 2)) for tick in xtick_values / SAMPLE_RATE]
+
         axs[i].plot(samples, linewidth=0.5, markersize=12)
+
+        plt.yticks([])
+        plt.xticks(xtick_values, xtick_labels)
+        plt.xlabel("seconds")
+
     if save_to is not None:
         plt.savefig(save_to)
         print(save_to)
@@ -153,21 +167,10 @@ def beep():
 
 
 if __name__ == "__main__":
-    # path = "rave/bounces/bandpass_*.wav"
-    # wav_paths = glob.glob(path)
 
     paths = [
-        "/Users/ulrikah/fag/thesis/csound_sketches/noise_5s.wav",
-        # "/Users/ulrikah/fag/thesis/csound_sketches/noise_lpf.wav",
-        "/Users/ulrikah/fag/thesis/csound_sketches/noise_lpf_dist.wav",
+        "/Users/ulrikah/fag/thesis/results/live_inf/live_inference.wav",
+        "/Users/ulrikah/fag/thesis/results/live_inf/offline_inference.wav",
     ]
 
-    fig, axes = plt.subplots(ncols=len(paths), figsize=(10, 7), sharey=True)
-
-    for i, path in enumerate(paths):
-        y, sr = librosa.load(path, sr=SAMPLE_RATE)
-        D = librosa.stft(y)  # STFT of y
-        S_db = librosa.amplitude_to_db(np.abs(D), ref=np.max)
-        img = librosa.display.specshow(S_db, ax=axes[i], x_axis="time", y_axis="log")
-    fig.colorbar(img, ax=axes, format="%+2.f dB")
-    plt.show()
+    plot_wavs(paths)
