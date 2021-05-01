@@ -58,6 +58,9 @@ class Effect:
         ]
         return numerical_mapping
 
+    def random_mapping(self):
+        return self.mapping_from_numerical_array(self.random_numerical_mapping())
+
     def parse_effect_from_json(self, effect_json_path: str):
         try:
             with open(effect_json_path, "r") as file:
