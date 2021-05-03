@@ -163,7 +163,7 @@ def train(config: dict, checkpoint_path: str = None):
         name=name,
         restore=checkpoint_path,  # None is default
         progress_reporter=progress_reporter,
-        stop={"training_iteration": 3000},
+        stop={"training_iteration": 1000},
     )
     print(analysis)
 

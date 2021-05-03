@@ -20,6 +20,8 @@ def metric_from_name(name: str) -> AbstractMetric:
         "l2": InvertedEuclideanDistance,
         "dissimilarity": EuclideanDistance,
         "relative": RelativeGain,
+        "ratio": RelativeGainRatio,
+        "mixed": RelativeMixed,
     }[name]()
 
 
@@ -87,4 +89,46 @@ class RelativeGain(AbstractMetric):
         euc_dry = np.linalg.norm(dry - target)
         euc_wet = np.linalg.norm(wet - target)
         reward = euc_dry - euc_wet
+        return reward
+
+
+class RelativeGainRatio(AbstractMetric):
+    def __init__(self):
+        super().__init__()
+
+    def calculate_reward(self, dry: np.ndarray, wet: np.ndarray, target: np.ndarray):
+        """
+        1. Computes the euclidean distance between dry and target
+        2. Computes the euclidean distance between wet and target
+        3. Measure how much better wet performed than dry by taking the ratio.
+            The difference will be a proxy for how much better/worse wet performed than dry
+        """
+        euc_dry = np.linalg.norm(dry - target)
+        euc_wet = np.linalg.norm(wet - target)
+
+        if euc_dry == 0:
+            euc_dry = 1e-4
+        if euc_wet == 0:
+            euc_wet = 1e-4
+
+        reward = euc_dry / euc_wet
+        return reward
+
+
+class RelativeMixed(AbstractMetric):
+    def __init__(self):
+        super().__init__()
+
+    def calculate_reward(self, dry: np.ndarray, wet: np.ndarray, target: np.ndarray):
+        euc_dry = np.linalg.norm(dry - target)
+        euc_wet = np.linalg.norm(wet - target)
+
+        if euc_dry == 0:
+            euc_dry = 1e-4
+        if euc_wet == 0:
+            euc_wet = 1e-4
+
+        ratio = euc_dry / euc_wet
+        reward = (1.0 / (1.0 + euc_wet)) * ratio
+
         return reward
