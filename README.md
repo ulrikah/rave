@@ -32,3 +32,13 @@ By default, checkpoints are saved every 100 iterations in `rave/ray_results/<nam
 `python rave/inference.py --checkpoint rave/ray_results/SAC_default_2021-03-02_22-52-02/SAC_CrossAdaptiveEnv_8566d_00000_0_2021-03-02_22-52-02/checkpoint_500/checkpoint-500`
 
 It is also possible to use other sounds than the default ones when testing out the model. Check the possible flags you can set by running with the `--help` flag.
+
+## Inspecting results from the training process
+
+All information regarding the training process is saved to `rave/ray_results/`. This information is saved in a [TensorBoard](https://www.tensorflow.org/tensorboard)-compliant format, which enables using TensorBoard to inspect the results. To do so, simply point TensorBoard to the to appropriate folder by typing this in a new terminal window:
+
+```bash
+tensorboard --logdir rave/ray_results
+```
+
+Note that the `tensorboard` command is installed with the dependencies of this project. As such, you need to activate the virtual environment beforehand with `poetry shell` (unless you already have `tensorboard` installed globally).
