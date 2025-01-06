@@ -1,5 +1,11 @@
 # rave
 
+## Thesis
+
+The written thesis can be found at the root of the repo: [thesis_2021_05_19.pdf](thesis_2021_05_19.pdf)
+
+The sonic digital appendix accompanying the thesis is hosted at [ulrikah.no/thesis](https://ulrikah.no/thesis/)
+
 ## Setup
 
 ### Non-python dependencies
